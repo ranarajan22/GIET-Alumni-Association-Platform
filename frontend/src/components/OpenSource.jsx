@@ -24,7 +24,7 @@ const OpenSource = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get('/api/open-source/all');
+      const response = await api.get('/open-source/all');
       
       if (response.data.success) {
         setProjects(response.data.projects || []);

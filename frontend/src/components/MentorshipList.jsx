@@ -22,11 +22,11 @@ const MentorshipList = ({ searchQuery = "", onMentorChat, filterByMentor = false
     if (!window.confirm('Are you sure you want to close this mentorship?')) return;
     
     try {
-      await api.delete(`/api/mentorships/${mentorshipId}`, {
+      await api.delete(`/mentorships/${mentorshipId}`, {
         data: { userId: currentUserId, userRole }
       });
       // Refresh mentorships instead of removing from list
-      api.get("/api/mentorships").then((res) => {
+      api.get("/mentorships").then((res) => {
         setMentorships(res.data);
       });
       alert('Mentorship closed successfully');
@@ -36,7 +36,7 @@ const MentorshipList = ({ searchQuery = "", onMentorChat, filterByMentor = false
   };
 
   useEffect(() => {
-    api.get("/api/mentorships").then((res) => {
+    api.get("/mentorships").then((res) => {
       setMentorships(res.data);
       setLoading(false);
     });
