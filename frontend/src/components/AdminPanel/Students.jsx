@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { Users, AlertTriangle, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 
 function Students() {
@@ -19,7 +20,7 @@ function Students() {
 
   const fetchStudents = async () => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       console.log('Fetching students from:', `${base}/admin/students`, 'with token:', !!token);

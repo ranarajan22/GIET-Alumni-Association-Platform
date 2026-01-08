@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { BarChart3, TrendingUp, Users, CheckCircle, AlertCircle } from 'lucide-react';
 
 function AdvancedMetrics({ stats }) {
@@ -18,7 +19,7 @@ function AdvancedMetrics({ stats }) {
 
   const fetchAlumniData = async () => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://localhost:8083/api';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.get(`${base}/admin/alumni`, { headers });
@@ -52,7 +53,7 @@ function AdvancedMetrics({ stats }) {
 
   const checkSystemHealth = async () => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://localhost:8083/api';
+      const base = API_BASE_URL;
       const startTime = Date.now();
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};

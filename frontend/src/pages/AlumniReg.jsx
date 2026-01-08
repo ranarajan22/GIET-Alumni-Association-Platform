@@ -76,7 +76,7 @@ function AlumniReg() {
     }
 
     try {
-      const { data } = await api.post('/api/alumni/signup', formData, {
+      const { data } = await api.post('/alumni/signup', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 

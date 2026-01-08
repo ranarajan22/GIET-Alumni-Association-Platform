@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { MessageCircle, Trash2, Check } from 'lucide-react';
 
 function ContactMessages() {
@@ -15,11 +16,11 @@ function ContactMessages() {
   const fetchContacts = async () => {
     try {
       setLoading(true);
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const response = await axios.get(`${base}/api/contact/all`, { headers });
+      const response = await axios.get(`${base}/contact/all`, { headers });
       setContacts(response.data.contacts);
       setStats(response.data.stats);
       setError('');
@@ -33,11 +34,11 @@ function ContactMessages() {
 
   const handleMarkAsResponded = async (id) => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      await axios.put(`${base}/api/contact/${id}`, { status: 'responded' }, { headers });
+      await axios.put(`${base}/contact/${id}`, { status: 'responded' }, { headers });
       fetchContacts();
     } catch (err) {
       console.error('Error updating contact:', err);
@@ -47,11 +48,11 @@ function ContactMessages() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this message?')) {
       try {
-        const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+        const base = API_BASE_URL;
         const token = localStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        await axios.delete(`${base}/api/contact/${id}`, { headers });
+        await axios.delete(`${base}/contact/${id}`, { headers });
         fetchContacts();
       } catch (err) {
         console.error('Error deleting contact:', err);

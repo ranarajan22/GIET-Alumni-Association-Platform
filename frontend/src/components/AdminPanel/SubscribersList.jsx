@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { Mail, Download } from 'lucide-react';
 
 function SubscribersList() {
@@ -14,11 +15,11 @@ function SubscribersList() {
   const fetchSubscribers = async () => {
     try {
       setLoading(true);
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-      const response = await axios.get(`${base}/api/subscribers/list`, { headers });
+      const response = await axios.get(`${base}/subscribers/list`, { headers });
       setSubscribers(response.data.subscribers);
       setError('');
     } catch (err) {

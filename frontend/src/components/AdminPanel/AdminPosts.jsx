@@ -7,20 +7,20 @@ const sections = {
   events: {
     title: 'Events',
     icon: Calendar,
-    fetch: () => api.get('/api/events'),
-    remove: (id) => api.delete(`/api/events/${id}`, { data: { userRole: 'admin' } })
+    fetch: () => api.get('/events'),
+    remove: (id) => api.delete(`/events/${id}`, { data: { userRole: 'admin' } })
   },
   jobs: {
     title: 'Job Openings',
     icon: Briefcase,
-    fetch: () => api.get('/api/job-openings'),
-    remove: (id) => api.delete(`/api/job-openings/${id}`, { data: { userRole: 'admin' } })
+    fetch: () => api.get('/job-openings'),
+    remove: (id) => api.delete(`/job-openings/${id}`, { data: { userRole: 'admin' } })
   },
   mentorships: {
     title: 'Mentorships',
     icon: Users,
-    fetch: () => api.get('/api/mentorships'),
-    remove: (id) => api.delete(`/api/mentorships/${id}`, { data: { userRole: 'admin' } })
+    fetch: () => api.get('/mentorships'),
+    remove: (id) => api.delete(`/mentorships/${id}`, { data: { userRole: 'admin' } })
   }
 };
 

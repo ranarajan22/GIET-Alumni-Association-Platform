@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { CheckCircle2, Shield, AlertTriangle, Loader2 } from 'lucide-react';
 
 const Alumni = ({ showAll = false }) => {
   const [alumniList, setAlumni] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+  const apiBase = API_BASE_URL;
 
   const makeAbsoluteUrl = (value) => {
     if (!value) return '';

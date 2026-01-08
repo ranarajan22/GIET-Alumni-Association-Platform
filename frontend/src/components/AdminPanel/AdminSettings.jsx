@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../../config';
 import { Settings, Bell, Lock, Database, LogOut, AlertTriangle, CheckCircle } from 'lucide-react';
 import { assets } from '../../assets/assets';
 
@@ -36,11 +37,11 @@ function AdminSettings() {
 
   const fetchMaintenanceStatus = async () => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
-      const response = await axios.get(`${base}/api/maintenance/status`, { headers });
+      const response = await axios.get(`${base}/maintenance/status`, { headers });
       if (response.data) {
         setSettings((prev) => ({
           ...prev,
@@ -59,7 +60,7 @@ function AdminSettings() {
   const handleSaveSettings = async () => {
     try {
       setLoading(true);
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -72,7 +73,7 @@ function AdminSettings() {
 
       // Save maintenance mode status to backend
       const response = await axios.put(
-        `${base}/api/maintenance/update`,
+        `${base}/maintenance/update`,
         {
           isActive: settings.maintenanceMode,
           message: 'System is under maintenance. Please try again later.',
