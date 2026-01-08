@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 import Sidebar from "../components/Sidebar";
 import EventsList from "../components/EventsList";
 import Card from "../components/Card";
@@ -58,14 +59,14 @@ function Dashboard() {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
       const profileRes = await axios.get(
-        `http://localhost:8083/api/alumni-list/profile/${currentUserId}`,
+        `${API_BASE_URL}/alumni-list/profile/${currentUserId}`,
         { headers }
       );
       
       // Fetch both alumni-list stats and review stats
       const [alumniStatsRes, reviewStatsRes] = await Promise.all([
-        axios.get(`http://localhost:8083/api/alumni-list/stats/${currentUserId}`, { headers }),
-        axios.get(`http://localhost:8083/api/reviews/${currentUserId}/stats`, { headers }).catch(() => null)
+        axios.get(`${API_BASE_URL}/alumni-list/stats/${currentUserId}`, { headers }),
+        axios.get(`${API_BASE_URL}/reviews/${currentUserId}/stats`, { headers }).catch(() => null)
       ]);
       
       console.log('Profile Data:', profileRes.data);
@@ -100,9 +101,9 @@ function Dashboard() {
       
       // Fetch student stats (events, mentorships, jobs available, unread messages)
       const [eventsRes, mentorshipsRes, jobsRes] = await Promise.all([
-        axios.get('http://localhost:8083/api/events', { headers }).catch(() => ({ data: { events: [] } })),
-        axios.get('http://localhost:8083/api/mentorships', { headers }).catch(() => ({ data: [] })),
-        axios.get('http://localhost:8083/api/job-openings', { headers }).catch(() => ({ data: [] }))
+        axios.get(`${API_BASE_URL}/events`, { headers }).catch(() => ({ data: { events: [] } })),
+        axios.get(`${API_BASE_URL}/mentorships`, { headers }).catch(() => ({ data: [] })),
+        axios.get(`${API_BASE_URL}/job-openings`, { headers }).catch(() => ({ data: [] }))
       ]);
 
       console.log('Events Response:', eventsRes.data);
@@ -119,7 +120,7 @@ function Dashboard() {
       // Count unread messages for students
       let unreadMessages = 0;
       try {
-        const contactsRes = await axios.get('http://localhost:8083/api/messages/contacts', { headers });
+        const contactsRes = await axios.get(`${API_BASE_URL}/messages/contacts`, { headers });
         const contacts = contactsRes.data || [];
         unreadMessages = contacts.filter(contact => contact.unreadCount > 0).length;
       } catch (error) {

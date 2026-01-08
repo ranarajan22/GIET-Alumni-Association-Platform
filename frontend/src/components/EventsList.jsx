@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Calendar } from "lucide-react";
 import PropTypes from "prop-types";
+import { API_BASE_URL } from "../config";
 
 // eslint-disable-next-line react/prop-types
 const EventsList = ({ searchQuery = "", filterByCreator = false }) => {
@@ -24,7 +25,7 @@ const EventsList = ({ searchQuery = "", filterByCreator = false }) => {
     try {
       setError(null);
       setLoading(true);
-      const response = await axios.get("http://localhost:8083/api/events");
+      const response = await axios.get(`${API_BASE_URL}/events`);
       const data = response?.data;
       const list = Array.isArray(data) ? data : Array.isArray(data?.events) ? data.events : [];
       setEvents(list);
@@ -159,7 +160,7 @@ const EventsList = ({ searchQuery = "", filterByCreator = false }) => {
 
     try {
       const response = await axios.post(
-        `http://localhost:8083/api/events/${eventId}/interested`,
+        `${API_BASE_URL}/events/${eventId}/interested`,
         { userId: currentUserId }
       );
 
@@ -231,7 +232,7 @@ const EventsList = ({ searchQuery = "", filterByCreator = false }) => {
     if (!window.confirm("Are you sure you want to close this event?")) return;
 
     try {
-      await axios.delete(`http://localhost:8083/api/events/${eventId}`, {
+      await axios.delete(`${API_BASE_URL}/events/${eventId}`, {
         data: { userId: currentUserId, userRole },
       });
       fetchEvents();

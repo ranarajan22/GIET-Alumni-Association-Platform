@@ -104,7 +104,7 @@ const Messages = ({ preSelectedUser }) => {
     const fetchMessages = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8083/api/messages/${selectedUser._id}`,
+          `${API_BASE_URL}/messages/${selectedUser._id}`,
           {
             headers: {
               'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ const Messages = ({ preSelectedUser }) => {
       setSendError('');
       console.log('Sending message to:', selectedUser._id);
       const response = await fetch(
-        `http://localhost:8083/api/messages/send/${selectedUser._id}`,
+        `${API_BASE_URL}/messages/send/${selectedUser._id}`,
         {
           method: 'POST',
           headers: {
@@ -256,7 +256,7 @@ const Messages = ({ preSelectedUser }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:8083/api/messages/conversation/${selectedUser._id}`,
+        `${API_BASE_URL}/messages/conversation/${selectedUser._id}`,
         {
           method: 'DELETE',
           headers: {
@@ -323,7 +323,7 @@ const Messages = ({ preSelectedUser }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:8083/api/messages/${selectedMessage._id}/delete-for-me`,
+        `${API_BASE_URL}/messages/${selectedMessage._id}/delete-for-me`,
         {
           method: 'DELETE',
           headers: {
@@ -348,7 +348,7 @@ const Messages = ({ preSelectedUser }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:8083/api/messages/${selectedMessage._id}/delete-for-everyone`,
+        `${API_BASE_URL}/messages/${selectedMessage._id}/delete-for-everyone`,
         {
           method: 'DELETE',
           headers: {

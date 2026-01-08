@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Clock, Users, Briefcase } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 // eslint-disable-next-line no-unused-vars
 const ActivityFeed = ({ role, onItemClick }) => {
@@ -19,9 +20,9 @@ const ActivityFeed = ({ role, onItemClick }) => {
 
         // Fetch recent events, mentorships, and jobs
         const [eventsRes, mentorshipRes, jobsRes] = await Promise.all([
-          axios.get('http://localhost:8083/api/events?limit=3', { headers }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8083/api/mentorships?limit=3', { headers }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8083/api/job-openings?limit=3', { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/events?limit=3`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/mentorships?limit=3`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/job-openings?limit=3`, { headers }).catch(() => ({ data: [] })),
         ]);
 
         const eventsList = Array.isArray(eventsRes.data) ? eventsRes.data : eventsRes.data?.events || [];

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import PropTypes from "prop-types";
 import { handleError, handleSuccess } from "../utils/utils";
+import { API_BASE_URL } from "../config";
 
 const EditProfilePopup = ({ onClose }) => {
   const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ const EditProfilePopup = ({ onClose }) => {
         // Try to fetch as alumni first
         try {
           console.log('Trying alumni endpoint: /api/alumni-profile/' + userId);
-          const alumniResponse = await axios.get(`http://localhost:8083/api/alumni-profile/${userId}`, { headers });
+          const alumniResponse = await axios.get(`${API_BASE_URL}/alumni-profile/${userId}`, { headers });
           console.log('Alumni profile fetched successfully:', alumniResponse.data);
           setUserType('alumni');
           setFormData({
@@ -53,7 +54,7 @@ const EditProfilePopup = ({ onClose }) => {
           // If not alumni, fetch as student
           try {
             console.log('Trying student endpoint: /api/user/' + userId);
-            const userResponse = await axios.get(`http://localhost:8083/api/user/${userId}`, { headers });
+            const userResponse = await axios.get(`${API_BASE_URL}/user/${userId}`, { headers });
             console.log('Student profile fetched successfully:', userResponse.data);
             setUserType('student');
             setFormData({
@@ -95,8 +96,8 @@ const EditProfilePopup = ({ onClose }) => {
       
       // Make the PUT request to update the profile based on user type
       const endpoint = userType === 'alumni' 
-        ? `http://localhost:8083/api/alumni-profile/${userId}`
-        : `http://localhost:8083/api/user/${userId}`;
+        ? `${API_BASE_URL}/alumni-profile/${userId}`
+        : `${API_BASE_URL}/user/${userId}`;
       
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       

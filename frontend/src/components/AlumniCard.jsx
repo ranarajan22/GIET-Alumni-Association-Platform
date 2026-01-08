@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Star, MessageSquare, Heart, Share2 } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const AlumniCard = ({ alumni, onChatClick, onViewProfile }) => {
   const [isFollowing, setIsFollowing] = useState(false);
@@ -20,8 +21,8 @@ const AlumniCard = ({ alumni, onChatClick, onViewProfile }) => {
       try {
         setLoading(true);
         const [reviewsResponse, statsResponse] = await Promise.all([
-          axios.get(`http://localhost:8083/api/reviews/${alumni._id}/reviews`),
-          axios.get(`http://localhost:8083/api/reviews/${alumni._id}/stats`)
+          axios.get(`${API_BASE_URL}/reviews/${alumni._id}/reviews`),
+          axios.get(`${API_BASE_URL}/reviews/${alumni._id}/stats`)
         ]);
 
         setReviews(reviewsResponse.data.reviews || []);
@@ -58,7 +59,7 @@ const AlumniCard = ({ alumni, onChatClick, onViewProfile }) => {
       if (isFollowing) {
         // Unfollow
         await axios.post(
-          `http://localhost:8083/api/follow/unfollow/${alumni._id}`,
+          `${API_BASE_URL}/follow/unfollow/${alumni._id}`,
           {},
           { headers }
         );
@@ -67,7 +68,7 @@ const AlumniCard = ({ alumni, onChatClick, onViewProfile }) => {
       } else {
         // Follow
         await axios.post(
-          `http://localhost:8083/api/follow/${alumni._id}`,
+          `${API_BASE_URL}/follow/${alumni._id}`,
           {},
           { headers }
         );
@@ -92,14 +93,14 @@ const AlumniCard = ({ alumni, onChatClick, onViewProfile }) => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
       const response = await axios.post(
-        `http://localhost:8083/api/reviews/${alumni._id}/review`,
+        `${API_BASE_URL}/reviews/${alumni._id}/review`,
         { rating, reviewText },
         { headers }
       );
 
       if (response.data.review) {
         // Refresh reviews and stats
-        const reviewsResponse = await axios.get(`http://localhost:8083/api/reviews/${alumni._id}/reviews`);
+        const reviewsResponse = await axios.get(`${API_BASE_URL}/reviews/${alumni._id}/reviews`);
         setReviews(reviewsResponse.data.reviews || []);
         setAverageRating(parseFloat(reviewsResponse.data.averageRating) || 0);
         

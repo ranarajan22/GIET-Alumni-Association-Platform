@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Users } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const TopConnections = () => {
   const [connections, setConnections] = useState([]);
@@ -13,7 +14,7 @@ const TopConnections = () => {
         const token = localStorage.getItem('token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
-        const res = await axios.get('http://localhost:8083/api/alumni-list?limit=5', { headers }).catch(() => ({ data: [] }));
+        const res = await axios.get(`${API_BASE_URL}/alumni-list?limit=5`, { headers }).catch(() => ({ data: [] }));
         const data = Array.isArray(res.data) ? res.data : res.data?.alumni || [];
         setConnections(data.slice(0, 5));
       } catch (error) {

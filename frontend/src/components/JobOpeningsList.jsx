@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Briefcase, Building2, Clock } from "lucide-react";
 import PropTypes from "prop-types";
+import { API_BASE_URL } from "../config";
 
 const JobOpeningsList = ({ searchQuery = "", filterByPoster = false }) => {
   const [jobs, setJobs] = useState([]);
@@ -16,11 +17,11 @@ const JobOpeningsList = ({ searchQuery = "", filterByPoster = false }) => {
     if (!window.confirm('Are you sure you want to close this job opening?')) return;
     
     try {
-      await axios.delete(`http://localhost:8083/api/job-openings/${jobId}`, {
+      await axios.delete(`${API_BASE_URL}/job-openings/${jobId}`, {
         data: { userId: currentUserId, userRole }
       });
       // Refresh jobs instead of removing from list
-      const res = await axios.get("http://localhost:8083/api/job-openings");
+      const res = await axios.get(`${API_BASE_URL}/job-openings`);
       setJobs(res.data);
       alert('Job opening closed successfully');
     } catch (error) {
@@ -31,7 +32,7 @@ const JobOpeningsList = ({ searchQuery = "", filterByPoster = false }) => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const res = await axios.get("http://localhost:8083/api/job-openings");
+        const res = await axios.get(`${API_BASE_URL}/job-openings`);
         setJobs(res.data);
         setLoading(false);
       } catch (err) {

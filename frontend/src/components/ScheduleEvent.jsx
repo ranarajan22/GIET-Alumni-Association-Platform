@@ -4,6 +4,7 @@ import axios from "axios";
 import { handleSuccess, handleError } from "../utils/utils";
 import PropTypes from 'prop-types';
 import { Calendar, Link2, FileText, Tag, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const ScheduleEvent = ({ onCancel }) => {
   const [eventDescription, setEventDescription] = useState("");
@@ -48,7 +49,7 @@ const ScheduleEvent = ({ onCancel }) => {
 
     try {
       // POST request to create a new event
-      const response = await axios.post("http://localhost:8083/api/events", eventData, { headers });
+      const response = await axios.post(`${API_BASE_URL}/events`, eventData, { headers });
 
       // Show success message and reset form if request is successful
       handleSuccess("Event Scheduled Successfully");

@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import { handleSuccess, handleError } from '../utils/utils';
 import { Users, FileText, User, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const HostMentorshipForm = ({ onCancel }) => {
   const [mentorshipDetails, setMentorshipDetails] = useState({
@@ -55,7 +56,7 @@ const HostMentorshipForm = ({ onCancel }) => {
         Authorization: `Bearer ${token}`
       };
 
-      const response = await axios.post('http://localhost:8083/api/mentorships', payload, { headers });
+      const response = await axios.post(`${API_BASE_URL}/mentorships`, payload, { headers });
       handleSuccess('Mentorship posted successfully!');
       setMentorshipDetails({ title: '', description: '', mentorName: '' });
       onCancel(); // Close the form after submission

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { User, MessageSquare, Mail, BookOpen, Briefcase, Link as LinkIcon, Github, Award, Code } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import AlumniCard from './AlumniCard';
 
 const Network = ({ onChatClick, userRole = null }) => {
@@ -35,7 +36,7 @@ const Network = ({ onChatClick, userRole = null }) => {
       try {
         if (isAlumni) {
           // If alumni user, fetch all students
-          const studentsResponse = await axios.get('http://localhost:8083/api/user/all/students');
+          const studentsResponse = await axios.get(`${API_BASE_URL}/user/all/students`);
           const studentsData = (studentsResponse.data.students || []).map(student => ({
             ...student,
             email: student.collegeEmail // Map collegeEmail to email for consistency
@@ -44,7 +45,7 @@ const Network = ({ onChatClick, userRole = null }) => {
           setStudents(studentsData);
         } else {
           // If student user, fetch all alumni
-          const alumniResponse = await axios.get('http://localhost:8083/api/alumni-list');
+          const alumniResponse = await axios.get(`${API_BASE_URL}/alumni-list`);
           const alumniData = (alumniResponse.data.alumni || []).map(alumni => ({
             ...alumni,
             email: alumni.collegeEmail // Map collegeEmail to email for consistency

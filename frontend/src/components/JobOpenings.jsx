@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import { handleSuccess, handleError } from '../utils/utils';
 import { Briefcase, Building2, Link2, FileText, X } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const JobOpeningsForm = ({ onCancel }) => {
   const [jobDetails, setJobDetails] = useState({
@@ -57,7 +58,7 @@ const JobOpeningsForm = ({ onCancel }) => {
         Authorization: `Bearer ${token}`
       };
 
-      const response = await axios.post('http://localhost:8083/api/job-openings', payload, { headers });
+      const response = await axios.post(`${API_BASE_URL}/job-openings`, payload, { headers });
       handleSuccess('Job opening posted successfully!');
       setJobDetails({ title: '', description: '', company: '', link: '' });
       onCancel(); // Close the form after submission

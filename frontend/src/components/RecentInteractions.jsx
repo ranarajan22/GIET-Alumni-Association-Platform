@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import { Calendar, Users, Briefcase, MessageCircle } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const RecentInteractions = () => {
   const [interactions, setInteractions] = useState([]);
@@ -15,9 +16,9 @@ const RecentInteractions = () => {
 
         // Fetch recent events, mentorships, and jobs
         const [eventsRes, mentorshipRes, jobsRes] = await Promise.all([
-          axios.get('http://localhost:8083/api/events?limit=2', { headers }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8083/api/mentorships?limit=2', { headers }).catch(() => ({ data: [] })),
-          axios.get('http://localhost:8083/api/job-openings?limit=2', { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/events?limit=2`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/mentorships?limit=2`, { headers }).catch(() => ({ data: [] })),
+          axios.get(`${API_BASE_URL}/job-openings?limit=2`, { headers }).catch(() => ({ data: [] })),
         ]);
 
         const eventsList = Array.isArray(eventsRes.data) ? eventsRes.data : eventsRes.data?.events || [];
