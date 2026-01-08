@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { API_ORIGIN } from '../../config';
+import { API_BASE_URL } from '../../config';
 import { Users, GraduationCap, Clock, CheckCircle, TrendingUp, Activity } from 'lucide-react';
 import AdminHeader from './AdminHeader';
 import Sidebar from './Sidebar';
@@ -43,8 +43,8 @@ function AdminPanel() {
         try {
             const token = localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            console.log('Fetching metrics from:', `${API_ORIGIN}/admin/metrics`, 'with token:', !!token);
-            const response = await axios.get(`${API_ORIGIN}/admin/metrics`, { headers });
+            console.log('Fetching metrics from:', `${API_BASE_URL}/admin/metrics`, 'with token:', !!token);
+            const response = await axios.get(`${API_BASE_URL}/admin/metrics`, { headers });
             console.log('Metrics response:', response.data);
             setStats({
                 totalStudents: response.data.totalStudents,
@@ -64,8 +64,8 @@ function AdminPanel() {
         try {
             const token = localStorage.getItem('token');
             const headers = token ? { Authorization: `Bearer ${token}` } : {};
-            console.log('Fetching activity from:', `${API_ORIGIN}/admin/activity`, 'with token:', !!token);
-            const response = await axios.get(`${API_ORIGIN}/admin/activity`, { headers });
+            console.log('Fetching activity from:', `${API_BASE_URL}/admin/activity`, 'with token:', !!token);
+            const response = await axios.get(`${API_BASE_URL}/admin/activity`, { headers });
             console.log('Activity response:', response.data);
             setActivity(response.data.feed?.slice(0, 10) || []);
         } catch (error) {

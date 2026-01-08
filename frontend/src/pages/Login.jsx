@@ -41,7 +41,7 @@ function Login() {
         e.preventDefault();
         if (!validate()) return;
 
-        const url = userType === 'alumni' ? '/api/alumni/login' : '/auth/login';
+        const url = userType === 'alumni' ? '/api/alumni/login' : '/api/auth/login';
 
         try {
             const { data } = await api.post(url, loginInfo);

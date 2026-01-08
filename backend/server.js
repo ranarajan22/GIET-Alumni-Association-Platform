@@ -85,14 +85,14 @@ app.get('/', (req, res) => {
 });
 
 // Define all routes
-app.use('/auth', AuthRouter);
+app.use('/api/auth', AuthRouter);
 app.use('/api/alumni', AuthAlumniRouter);
 app.use('/api/student/upload', uploadRoute);
 app.use('/api/alumni/upload', uploadRoute);
 app.use('/api/events', eventRouter);
 app.use('/api/messages', messageRoutes);
 app.use('/api/user', userRoutes);
-app.use('/admin', AdminRoutes);
+app.use('/api/admin', AdminRoutes);
 app.use('/api/maintenance', MaintenanceRoutes);
 app.use('/api/job-openings', jobOpeningRoutes); // ✅ Correct Job Openings route
 app.use('/api/mentorships', mentorshipRoutes); // ✅ Add mentorship route
