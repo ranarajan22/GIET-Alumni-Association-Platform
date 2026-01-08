@@ -69,10 +69,6 @@ const userSchema = new Schema({
       timestamps: true // Automatically creates `createdAt` and `updatedAt` fields
     });
 
-// Ensure fast lookups on login and unique constraints at the DB level
-userSchema.index({ collegeEmail: 1 }, { unique: true });
-userSchema.index({ usn: 1 }, { unique: true });
-
 const User = mongoose.model('users', userSchema);
 
 module.exports = User;
