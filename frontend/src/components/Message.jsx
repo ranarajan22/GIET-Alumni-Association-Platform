@@ -49,7 +49,7 @@ const Messages = ({ preSelectedUser }) => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/messages/contacts`, {
+      const response = await fetch(`${API_BASE_URL}/messages/contacts`, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,

@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from '../config';
 import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaYoutube, FaWhatsapp } from "react-icons/fa";
 import { assets } from "../assets/assets";
 
@@ -18,8 +19,7 @@ const EnhancedFooter = () => {
     setError("");
 
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
-      await axios.post(`${base}/api/subscribers/subscribe`, { email });
+      await axios.post(`${API_BASE_URL}/subscribers/subscribe`, { email });
       
       setSubscribed(true);
       setEmail("");

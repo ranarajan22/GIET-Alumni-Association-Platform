@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaYoutube, FaWhatsapp, FaGlobe, FaClock, FaPaperPlane } from "react-icons/fa";
 import axios from "axios";
+import { API_BASE_URL } from '../config';
 import AOS from "aos";
 import "aos/dist/aos.css";
 
@@ -30,10 +31,8 @@ function Contact() {
     setError("");
     
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
-      
       // Send to backend
-      await axios.post(`${base}/api/contact/submit`, {
+      await axios.post(`${API_BASE_URL}/contact/submit`, {
         name: formData.name,
         email: formData.email,
         phone: formData.phone,
