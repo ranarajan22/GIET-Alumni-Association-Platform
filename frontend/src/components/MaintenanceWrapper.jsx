@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import MaintenancePage from '../pages/MaintenancePage';
 import { useLocation } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 function MaintenanceWrapper({ children }) {
   const [isMaintenanceActive, setIsMaintenanceActive] = useState(false);
@@ -18,14 +19,14 @@ function MaintenanceWrapper({ children }) {
 
   const checkMaintenanceStatus = async () => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
+      const base = API_BASE_URL;
       
       // Check if user is admin
       const userRole = localStorage.getItem('userRole');
       setIsAdmin(userRole === 'admin');
 
       // Public endpoint that doesn't require authentication
-      const response = await axios.get(`${base}/api/maintenance/check`);
+      const response = await axios.get(`${base}/maintenance/check`);
       
       if (response.data && response.data.isActive) {
         // Only block non-admin users from non-admin routes

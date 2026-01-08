@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AlertCircle, Clock, Wrench } from 'lucide-react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 function MaintenancePage() {
   const [maintenanceInfo, setMaintenanceInfo] = useState({
@@ -18,8 +19,7 @@ function MaintenancePage() {
 
   const fetchMaintenanceStatus = async () => {
     try {
-      const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8083';
-      const response = await axios.get(`${base}/api/maintenance/check`);
+      const response = await axios.get(`${API_BASE_URL}/maintenance/check`);
       if (response.data) {
         setMaintenanceInfo({
           message: response.data.message || 'System is under maintenance.',
