@@ -1,69 +1,142 @@
-# Dependencies
+# ============================================
+# DEPENDENCIES & MODULES
+# ============================================
+# Node modules at all levels
 node_modules/
 */node_modules/
-package-lock.json
-*/package-lock.json
+**/node_modules/
 
-# Environment variables
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*/package-lock.json
+*/yarn.lock
+*/pnpm-lock.yaml
+
+# ============================================
+# ENVIRONMENT VARIABLES - CRITICAL
+# ============================================
+# All .env files at any level
 .env
 .env.local
-.env.*.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
 .env.production.local
-frontend/.env
-backend/.env
+.env.*.local
 
-# IDE and editor
+# Specific backend/frontend .env files
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# ============================================
+# IDE & EDITOR CONFIGS
+# ============================================
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 *.sublime-project
 *.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
 
-# Build outputs
+# ============================================
+# BUILD OUTPUTS & ARTIFACTS
+# ============================================
 dist/
 build/
-*.tsbuildinfo
 frontend/dist/
+frontend/build/
+backend/dist/
+backend/build/
+out/
+*.tsbuildinfo
 
-# Runtime
+# ============================================
+# LOGS & DEBUG
+# ============================================
 logs/
+log/
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+debug.log
 
-# OS
-Thumbs.db
+# ============================================
+# OS & SYSTEM FILES
+# ============================================
 .DS_Store
-
-# Temporary files
+Thumbs.db
+.AppleDouble
+.LSOverride
+*.bak
 *.tmp
 *.temp
+*.swp
 
-# Uploads (local file storage)
-backend/uploads/
+# ============================================
+# LOCAL STORAGE & UPLOADS
+# ============================================
 uploads/
+backend/uploads/
+frontend/uploads/
+**/uploads/
+public/uploads/
 
-# Documentation build output
-docs/_build/
-
-# Cache
+# ============================================
+# CACHE FILES
+# ============================================
 .cache/
 .next/
+.nuxt/
+.pnp
+.pnp.js
+.env.cache
 
-# Production build
-dist/
-build/
-
-# Testing
+# ============================================
+# TESTING & COVERAGE
+# ============================================
 coverage/
 .nyc_output/
+.coverage
+.pytest_cache/
+test-results/
 
-# Misc
+# ============================================
+# MISCELLANEOUS
+# ============================================
 .turbo/
-out/
+.eslintcache
+.parcel-cache
+.vuepress/dist
+dist-ssr/
+*.local
+.bundle/
+.venv/
+venv/
+ENV/
+env/
+
+# IDE specific
+.jshintrc
+.editorconfig
+
+# Misc application files
+.DS_Store
+config.local.json
+database.db
+*.sqlite
+*.db
