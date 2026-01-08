@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Settings, Bell, Lock, Database, LogOut, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Settings, Bell, Lock, Database, LogOut, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { assets } from '../../assets/assets';
 
 function AdminSettings() {
@@ -13,6 +13,18 @@ function AdminSettings() {
     maxUploadSize: 10, // MB
   });
 
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  const [passwordVisibility, setPasswordVisibility] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
+
   const [logs, setLogs] = useState([
     { id: 1, action: 'Alumni Verification', by: 'Admin', time: '2 hours ago', status: 'success' },
     { id: 2, action: 'Student Registration', by: 'System', time: '1 day ago', status: 'success' },
@@ -22,6 +34,7 @@ function AdminSettings() {
   const [savedMessage, setSavedMessage] = useState('');
   const [activeTab, setActiveTab] = useState('general');
   const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const storedPhoto = localStorage.getItem('profilePhoto');
   const cleanedPhoto = storedPhoto?.trim();
@@ -98,6 +111,86 @@ function AdminSettings() {
   const handleLogout = () => {
     localStorage.clear();
     window.location.href = '/';
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      setSavedMessage('All password fields are required!');
+      setTimeout(() => setSavedMessage(''), 5000);
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setSavedMessage('New password and confirm password do not match!');
+      setTimeout(() => setSavedMessage(''), 5000);
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      setSavedMessage('New password must be at least 6 characters long!');
+      setTimeout(() => setSavedMessage(''), 5000);
+      return;
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      setSavedMessage('New password must be different from current password!');
+      setTimeout(() => setSavedMessage(''), 5000);
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      const token = localStorage.getItem('token');
+      const adminId = localStorage.getItem('userId');
+      
+      if (!token || !adminId) {
+        setSavedMessage('Error: No authentication token found. Please log in again.');
+        setTimeout(() => setSavedMessage(''), 5000);
+        return;
+      }
+
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Call password change API
+      const response = await axios.put(
+        `${API_BASE_URL}/admin/change-password`,
+        {
+          adminId,
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        },
+        { headers }
+      );
+
+      if (response.data.success || response.status === 200) {
+        setSavedMessage('Password updated successfully!');
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        });
+        setTimeout(() => setSavedMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      const errorMsg = error.response?.data?.message || 
+                      error.response?.data?.error || 
+                      'Failed to update password. Please check your current password and try again.';
+      setSavedMessage(`Error: ${errorMsg}`);
+      setTimeout(() => setSavedMessage(''), 5000);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setPasswordVisibility(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   };
 
   return (
@@ -237,23 +330,79 @@ function AdminSettings() {
 
               <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
                 <p className="font-semibold text-white mb-3">Change Password</p>
-                <input
-                  type="password"
-                  placeholder="Current password"
-                  className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 mb-2 focus:outline-none focus:border-cyan-500"
-                />
-                <input
-                  type="password"
-                  placeholder="New password"
-                  className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 mb-2 focus:outline-none focus:border-cyan-500"
-                />
-                <input
-                  type="password"
-                  placeholder="Confirm password"
-                  className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 mb-3 focus:outline-none focus:border-cyan-500"
-                />
-                <button className="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg transition">
-                  Update Password
+                
+                <div className="space-y-3">
+                  {/* Current Password */}
+                  <div className="relative">
+                    <input
+                      type={passwordVisibility.current ? 'text' : 'password'}
+                      placeholder="Current password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('current')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    >
+                      {passwordVisibility.current ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {/* New Password */}
+                  <div className="relative">
+                    <input
+                      type={passwordVisibility.new ? 'text' : 'password'}
+                      placeholder="New password (min 6 characters)"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('new')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    >
+                      {passwordVisibility.new ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="relative">
+                    <input
+                      type={passwordVisibility.confirm ? 'text' : 'password'}
+                      placeholder="Confirm new password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => togglePasswordVisibility('confirm')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    >
+                      {passwordVisibility.confirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handlePasswordChange}
+                  disabled={passwordLoading}
+                  className="w-full px-4 py-2 mt-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-slate-600 disabled:to-slate-600 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
+                >
+                  {passwordLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>
+                      <Lock size={16} />
+                      Update Password
+                    </>
+                  )}
                 </button>
               </div>
 

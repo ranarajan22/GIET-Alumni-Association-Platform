@@ -3,6 +3,7 @@ const User = require('../Models/users');
 const Event = require('../Models/event');
 const JobOpening = require('../Models/JobOpening');
 const Mentorship = require('../Models/Mentorship');
+const bcrypt = require('bcrypt');
 
 // Controller to get all alumni (for admin)
 const getAllAlumni = async (req, res) => {
@@ -120,4 +121,79 @@ const getActivity = async (req, res) => {
   }
 };
 
-module.exports = { getAllAlumni, verifyAlumni, getMetrics, getStudents, getActivity };
+// Change admin password
+const changePassword = async (req, res) => {
+  try {
+    const { adminId, currentPassword, newPassword } = req.body;
+
+    // Validation
+    if (!adminId || !currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters long'
+      });
+    }
+
+    // Find admin user
+    const admin = await User.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin user not found'
+      });
+    }
+
+    if (admin.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. User is not an admin'
+      });
+    }
+
+    // Verify current password
+    const isPasswordCorrect = await bcrypt.compare(currentPassword, admin.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Check if new password is same as current
+    const isSamePassword = await bcrypt.compare(newPassword, admin.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be different from current password'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    admin.password = hashedPassword;
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change password',
+      error: error.message
+    });
+  }
+};
+
+module.exports = { getAllAlumni, verifyAlumni, getMetrics, getStudents, getActivity, changePassword };
