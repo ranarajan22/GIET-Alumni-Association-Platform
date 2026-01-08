@@ -17,7 +17,7 @@ pnpm-lock.yaml
 # ============================================
 # ENVIRONMENT VARIABLES - CRITICAL
 # ============================================
-# All .env files at any level
+# All .env files at any level (EXCEPT .env.example which should be tracked)
 .env
 .env.local
 .env.development
@@ -31,8 +31,13 @@ pnpm-lock.yaml
 # Specific backend/frontend .env files
 backend/.env
 backend/.env.*
+!backend/.env.example
 frontend/.env
 frontend/.env.*
+!frontend/.env.example
+
+# Allow .env.example files in root
+!.env.example
 
 # ============================================
 # IDE & EDITOR CONFIGS
