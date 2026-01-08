@@ -2,6 +2,8 @@
 const fallbackApiUrl =
   typeof window !== 'undefined' && window.__API_BASE_URL__
     ? window.__API_BASE_URL__
+    : import.meta.env.MODE === 'production'
+    ? 'https://giet-alumni-association-platform.onrender.com'
     : 'http://localhost:8083';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || fallbackApiUrl;
