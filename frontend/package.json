@@ -1,14 +1,16 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Alumni Connect - Frontend React Application",
   "type": "module",
   "scripts": {
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "aos": "^2.3.4",

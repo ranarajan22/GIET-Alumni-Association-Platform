@@ -1,15 +1,29 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Alumni Connect - Backend Express Server with MongoDB",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "seed:admin": "node seedAdmin.js",
+    "seed:students": "node seedStudents.js",
+    "promote:admin": "node promote-admin.js",
+    "list:users": "node list-users.js",
+    "fix:student-role": "node fixStudentRole.js",
+    "check:maintenance": "node check-maintenance.js",
+    "maintenance:check": "node check-maintenance.js",
+    "maintenance:disable": "node disable-maintenance.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "alumni",
+    "networking",
+    "express",
+    "mongodb",
+    "socket.io"
+  ],
+  "author": "Alumni Connect Team",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -22,9 +36,14 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.12.0",
     "mongoose": "^8.9.5",
+    "multer": "^1.4.5-lts.1",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
   }
 }
