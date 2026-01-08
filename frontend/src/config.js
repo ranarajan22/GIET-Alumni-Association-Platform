@@ -1,10 +1,11 @@
 // Shared runtime configuration for API and socket connections
-// Normalize URLs to avoid accidental double slashes and trailing slashes
+// Normalize URLs to avoid accidental double slashes, trailing slashes, and stray /api suffixes
 const normalizeUrl = (url) =>
   (url || '')
     .trim()
     .replace(/\s+/g, '')
-    .replace(/\/+$/, '');
+    .replace(/\/+$/, '')
+    .replace(/\/api$/i, '');
 
 // Default to the backend origin (no /api here). We append /api where needed below.
 const fallbackApiOrigin =
