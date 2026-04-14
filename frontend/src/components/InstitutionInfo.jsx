@@ -15,7 +15,7 @@ function InstitutionInfo() {
 
   return (
     <div className="w-full bg-gradient-to-br from-blue-50 to-orange-50 py-16 font-outfit">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Title Section */}
         <div className="text-center mb-12" data-aos="fade-up">
           <h2 className="text-4xl md:text-5xl font-bold text-secondary mb-4">

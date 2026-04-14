@@ -15,7 +15,7 @@ function VirtualTour() {
 
   return (
     <div className="w-full bg-gradient-to-br from-secondary to-blue-900 py-16 font-outfit">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Title */}
         <h2 
           className="text-4xl font-bold text-center mb-4 text-white"
