@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, GraduationCap, Settings, LayoutDashboard, BarChart3 } from 'lucide-react';
+import { Users, GraduationCap, Settings, LayoutDashboard, BarChart3, Upload } from 'lucide-react';
 import { assets } from '../../assets/assets';
 
 function Sidebar({ setCurrentView, currentView, onClose }) {
@@ -12,6 +12,7 @@ function Sidebar({ setCurrentView, currentView, onClose }) {
            { label: 'Dashboard', key: 'all', icon: LayoutDashboard },
            { label: 'Students', key: 'students', icon: Users },
            { label: 'Alumni', key: 'alumni', icon: GraduationCap },
+           { label: 'Bulk Import', key: 'import', icon: Upload },
            { label: 'Events', key: 'events', icon: BarChart3 },
            { label: 'Jobs', key: 'jobs', icon: BarChart3 },
            { label: 'Mentorships', key: 'mentorships', icon: BarChart3 },

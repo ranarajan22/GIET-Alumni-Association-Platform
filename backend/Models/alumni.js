@@ -12,16 +12,21 @@ const alumniSchema = new Schema({
         type: Number,
         required: true,
     },
+    dob: {
+        type: Date,
+    },
     collegeEmail: {
         type: String,
-        required: true,
+        required: false,
         unique: true,
-        match: [/^[0-9]{2}[a-z]{3}[0-9]{3}\.[a-z0-9]+@giet\.edu$/i, 'Please provide a valid email address'],
+        sparse: true,
+        lowercase: true,
         trim: true,
     },
     registrationNumber: {
         type: String,
         required: true,
+        unique: true,
         trim: true,
     },
     password: {
@@ -38,6 +43,18 @@ const alumniSchema = new Schema({
         trim: true,
     },
     fieldOfStudy: {
+        type: String,
+        trim: true,
+    },
+    branch: {
+        type: String,
+        trim: true,
+    },
+    mobile: {
+        type: String,
+        trim: true,
+    },
+    gender: {
         type: String,
         trim: true,
     },
@@ -61,11 +78,19 @@ const alumniSchema = new Schema({
     },
     profilePhoto: {
         type: String, // Stores the file path or URL of the uploaded profile photo
-        required: true,
+        default: '',
     },
     verified: {
         type: Boolean,
         default: false, // Initially set to false when an alumni registers
+    },
+    passwordResetRequired: {
+        type: Boolean,
+        default: false,
+    },
+    importSource: {
+        type: String,
+        trim: true,
     },
     role: {
         type: String,

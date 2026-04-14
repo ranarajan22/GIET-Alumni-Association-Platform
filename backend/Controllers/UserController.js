@@ -3,8 +3,24 @@ const Alumni = require('../Models/alumni'); // Import Alumni model
 
 const getAllStudents = async (req, res) => {
   try {
-        // Return only student roles and omit sensitive data like password
-        const students = await User.find({ role: 'student' }).select('-password');
+                const filter = { role: 'student' };
+                if (req.query.batch) filter.graduationYear = Number(req.query.batch);
+                if (req.query.course) filter.course = req.query.course;
+                if (req.query.branch) {
+                    filter.$or = [{ branch: req.query.branch }, { fieldOfStudy: req.query.branch }];
+                }
+                if (req.query.search) {
+                    const regex = new RegExp(req.query.search, 'i');
+                    filter.$or = [
+                        ...(filter.$or || []),
+                        { fullName: regex },
+                        { collegeEmail: regex },
+                        { usn: regex }
+                    ];
+                }
+
+                // Return only student roles and omit sensitive data like password
+                const students = await User.find(filter).select('-password');
     res.status(200).json({ students });
   } catch (error) {
     console.error('Error fetching students:', error.message);
@@ -12,6 +28,30 @@ const getAllStudents = async (req, res) => {
       res.status(500).json({ error: 'Failed to retrieve students' });
     }
   }
+};
+
+const getStudentFacets = async (req, res) => {
+    try {
+        const [batchValues, courseValues, branchValues, fieldValues] = await Promise.all([
+            User.distinct('graduationYear', { role: 'student' }),
+            User.distinct('course', { role: 'student' }),
+            User.distinct('branch', { role: 'student' }),
+            User.distinct('fieldOfStudy', { role: 'student' })
+        ]);
+
+        const mergedBranches = Array.from(new Set([...(branchValues || []), ...(fieldValues || [])]));
+
+        res.status(200).json({
+            batches: batchValues.filter(Boolean).sort((a, b) => a - b),
+            courses: courseValues.filter(Boolean).sort(),
+            branches: mergedBranches.filter(Boolean).sort()
+        });
+    } catch (error) {
+        console.error('Error fetching student facets:', error.message);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to retrieve student facets' });
+        }
+    }
 };
 
 const getUsersForSidebar = async (req, res) => {
@@ -81,4 +121,4 @@ const getUsersForSidebar = async (req, res) => {
 };
 
 
-module.exports = { getUsersForSidebar, getAllStudents };
+module.exports = { getUsersForSidebar, getAllStudents, getStudentFacets };

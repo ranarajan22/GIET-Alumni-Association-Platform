@@ -19,7 +19,7 @@ const seedAdmin = async () => {
         }
 
         // Hash the password
-        const hashedPassword = await bcrypt.hash('Admin@123', 10);
+        const hashedPassword = await bcrypt.hash('123/456', 10);
 
         // Create admin user
         const adminUser = new User({
@@ -39,7 +39,7 @@ const seedAdmin = async () => {
         console.log('✅ Admin user created successfully!');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('📧 Email: 00adm001.admin@giet.edu');
-        console.log('🔑 Password: Admin@123');
+        console.log('🔑 Password: 123/456');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('⚠️  Please change this password after first login!');
         

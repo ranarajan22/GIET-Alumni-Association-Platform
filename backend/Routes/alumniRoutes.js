@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAllAlumni, getAlumniProfile, getAlumniStats, updateAlumniProfile } = require('../Controllers/AlumniController');
+const { getAllAlumni, getAlumniFacets, getAlumniProfile, getAlumniStats, updateAlumniProfile } = require('../Controllers/AlumniController');
 const protectRoute = require('../Middlewares/ProtectRoute');
 
 // Debug middleware to log all requests
@@ -19,6 +19,7 @@ router.use((req, res, next) => {
 
 // For listing all alumni
 router.get('/', getAllAlumni);
+router.get('/facets', getAlumniFacets);
 
 // For getting alumni stats (MUST come before /:id to avoid conflict)
 router.get('/stats/:id', getAlumniStats);

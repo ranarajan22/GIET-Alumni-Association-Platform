@@ -11,6 +11,10 @@ const Network = ({ onChatClick, userRole = null }) => {
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [selectedBatch, setSelectedBatch] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [facets, setFacets] = useState({ batches: [], courses: [], branches: [] });
 
   // Determine role from prop or localStorage
   const role = userRole || localStorage.getItem("userRole");
@@ -34,24 +38,39 @@ const Network = ({ onChatClick, userRole = null }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const commonParams = {
+          search: searchQuery || undefined,
+          batch: selectedBatch || undefined,
+          course: selectedCourse || undefined,
+          branch: selectedBranch || undefined
+        };
+
         if (isAlumni) {
           // If alumni user, fetch all students
-          const studentsResponse = await axios.get(`${API_BASE_URL}/user/all/students`);
+          const [studentsResponse, studentFacetsResponse] = await Promise.all([
+            axios.get(`${API_BASE_URL}/user/all/students`, { params: commonParams }),
+            axios.get(`${API_BASE_URL}/user/all/students/facets`)
+          ]);
           const studentsData = (studentsResponse.data.students || []).map(student => ({
             ...student,
-            email: student.collegeEmail // Map collegeEmail to email for consistency
+            email: student.collegeEmail, // Map collegeEmail to email for consistency
+            branch: student.branch || student.fieldOfStudy
           }));
-          console.log('Students data:', studentsData[0]); // Log first student to check fields
           setStudents(studentsData);
+          setFacets(studentFacetsResponse.data || { batches: [], courses: [], branches: [] });
         } else {
           // If student user, fetch all alumni
-          const alumniResponse = await axios.get(`${API_BASE_URL}/alumni-list`);
+          const [alumniResponse, alumniFacetsResponse] = await Promise.all([
+            axios.get(`${API_BASE_URL}/alumni-list`, { params: commonParams }),
+            axios.get(`${API_BASE_URL}/alumni-list/facets`)
+          ]);
           const alumniData = (alumniResponse.data.alumni || []).map(alumni => ({
             ...alumni,
-            email: alumni.collegeEmail // Map collegeEmail to email for consistency
+            email: alumni.collegeEmail, // Map collegeEmail to email for consistency
+            branch: alumni.branch || alumni.fieldOfStudy
           }));
-          console.log('Alumni data:', alumniData[0]); // Log first alumni to check fields
           setAlumni(alumniData);
+          setFacets(alumniFacetsResponse.data || { batches: [], courses: [], branches: [] });
         }
 
         setLoading(false);
@@ -63,9 +82,9 @@ const Network = ({ onChatClick, userRole = null }) => {
     };
 
     fetchData();
-  }, [isAlumni]);
+  }, [isAlumni, searchQuery, selectedBatch, selectedCourse, selectedBranch]);
 
-  // Filter data based on search query
+  // Server already applies filters; keep client-side fallback for immediate search refinement.
   const displayData = isAlumni ? students : alumni;
   const filteredData = displayData.filter(person => 
     person.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,6 +111,38 @@ const Network = ({ onChatClick, userRole = null }) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+          <select
+            value={selectedBatch}
+            onChange={(e) => setSelectedBatch(e.target.value)}
+            className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg"
+          >
+            <option value="">All Batches</option>
+            {facets.batches?.map((batch) => (
+              <option key={batch} value={batch}>{batch}</option>
+            ))}
+          </select>
+          <select
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+            className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg"
+          >
+            <option value="">All Courses</option>
+            {facets.courses?.map((course) => (
+              <option key={course} value={course}>{course}</option>
+            ))}
+          </select>
+          <select
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+            className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg"
+          >
+            <option value="">All Branches</option>
+            {facets.branches?.map((branch) => (
+              <option key={branch} value={branch}>{branch}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">

@@ -65,11 +65,11 @@ next();
 const loginValidation = (req, res, next) => {
     const schema = Joi.object({
       collegeEmail: Joi.string()
-        .pattern(/^[0-9]{2}[a-z]{3}[0-9]{3}\.[a-z0-9]+@giet\.edu$/i)
+        .email()
         .required()
         .messages({
           'string.empty': 'College Email is required',
-          'string.pattern.base': 'Please provide a valid GIETU email address',
+          'string.email': 'Please provide a valid email address',
         }),
       password: Joi.string().min(6).required().messages({
         'string.empty': 'Password is required',

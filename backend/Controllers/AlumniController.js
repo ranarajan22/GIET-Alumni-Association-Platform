@@ -5,14 +5,57 @@ const JobOpening = require('../Models/JobOpening');
 const Message = require('../Models/message');
 const Conversation = require('../Models/conversation');
 
+function buildDirectoryFilter(query = {}) {
+  const filter = { verified: true };
+
+  if (query.batch) filter.graduationYear = Number(query.batch);
+  if (query.course) filter.course = query.course;
+  if (query.branch) {
+    filter.$or = [{ branch: query.branch }, { fieldOfStudy: query.branch }];
+  }
+  if (query.search) {
+    const searchRegex = new RegExp(query.search, 'i');
+    filter.$or = [
+      ...(filter.$or || []),
+      { fullName: searchRegex },
+      { collegeEmail: searchRegex },
+      { registrationNumber: searchRegex }
+    ];
+  }
+
+  return filter;
+}
+
 const getAllAlumni = async (req, res) => {
   try {
-    // Return all fields except sensitive data like password and degreeCertificate
-    const alumni = await Alumni.find({ verified: true }).select('-password -degreeCertificate');
+    const filter = buildDirectoryFilter(req.query);
+    const alumni = await Alumni.find(filter).select('-password -degreeCertificate');
     res.status(200).json({ alumni });
   } catch (error) {
     console.error('Error fetching alumni:', error);
     res.status(500).json({ error: 'Failed to retrieve alumni' });
+  }
+};
+
+const getAlumniFacets = async (req, res) => {
+  try {
+    const [batchValues, courseValues, branchValues, fieldValues] = await Promise.all([
+      Alumni.distinct('graduationYear', { verified: true }),
+      Alumni.distinct('course', { verified: true }),
+      Alumni.distinct('branch', { verified: true }),
+      Alumni.distinct('fieldOfStudy', { verified: true })
+    ]);
+
+    const mergedBranches = Array.from(new Set([...(branchValues || []), ...(fieldValues || [])]));
+
+    res.status(200).json({
+      batches: batchValues.filter(Boolean).sort((a, b) => a - b),
+      courses: courseValues.filter(Boolean).sort(),
+      branches: mergedBranches.filter(Boolean).sort()
+    });
+  } catch (error) {
+    console.error('Error fetching alumni facets:', error);
+    res.status(500).json({ error: 'Failed to retrieve alumni facets' });
   }
 };
 
@@ -192,4 +235,4 @@ const updateAlumniProfile = async (req, res) => {
   }
 };
 
-module.exports = { getAllAlumni, getAlumniProfile, getAlumniStats, updateAlumniProfile };
+module.exports = { getAllAlumni, getAlumniFacets, getAlumniProfile, getAlumniStats, updateAlumniProfile };

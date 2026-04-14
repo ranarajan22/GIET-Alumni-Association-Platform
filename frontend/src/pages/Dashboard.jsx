@@ -44,6 +44,10 @@ function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isNotificationsPanelOpen, setIsNotificationsPanelOpen] = useState(false);
   const [, setSelectedDate] = useState(null);
+  const [mustResetPassword, setMustResetPassword] = useState(false);
+  const [resetForm, setResetForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [resetError, setResetError] = useState('');
+  const [resetSubmitting, setResetSubmitting] = useState(false);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const formSectionRef = useRef(null);
@@ -155,6 +159,9 @@ function Dashboard() {
     if (user) setLoggedInUser(user);
     if (photo) setProfilePhoto(photo);
     if (userRole) setRole(userRole);
+    if (userRole === 'alumni' && localStorage.getItem('forcePasswordReset') === 'true') {
+      setMustResetPassword(true);
+    }
 
     // Fetch profile and stats based on role
     if (userRole === "alumni" && userId) {
@@ -371,6 +378,43 @@ function Dashboard() {
     // Use actual stats or provide default empty stats
     const statsData = stats?.stats || { totalEvents: 0, totalMentorships: 0, totalJobOpenings: 0, unreadMessages: 0 };
     return <QuickStats role={role} stats={statsData} onStatClick={handleStatClick} />;
+  };
+
+  const handleResetPassword = async () => {
+    try {
+      setResetError('');
+      if (!resetForm.newPassword || !resetForm.confirmPassword) {
+        setResetError('Both fields are required');
+        return;
+      }
+      if (resetForm.newPassword.length < 6) {
+        setResetError('Password must be at least 6 characters');
+        return;
+      }
+      if (resetForm.newPassword !== resetForm.confirmPassword) {
+        setResetError('Passwords do not match');
+        return;
+      }
+
+      setResetSubmitting(true);
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.put(
+        `${API_BASE_URL}/alumni/change-password-first-login`,
+        {
+          newPassword: resetForm.newPassword,
+          confirmPassword: resetForm.confirmPassword
+        },
+        { headers }
+      );
+
+      localStorage.removeItem('forcePasswordReset');
+      setMustResetPassword(false);
+      setResetForm({ newPassword: '', confirmPassword: '' });
+    } catch (error) {
+      setResetError(error.response?.data?.message || 'Failed to update password');
+    } finally {
+      setResetSubmitting(false);
+    }
   };
 
   const renderContent = () => {
@@ -705,6 +749,43 @@ function Dashboard() {
           setIsEditProfileOpen(false);
           fetchAlumniData();
         }} />
+      )}
+
+      {mustResetPassword && role === 'alumni' && (
+        <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-2xl">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Change Temporary Password</h3>
+            <p className="text-sm text-gray-600 dark:text-slate-400 mt-1">
+              For security, set a new password before using your dashboard.
+            </p>
+
+            <div className="space-y-3 mt-4">
+              <input
+                type="password"
+                placeholder="New password"
+                value={resetForm.newPassword}
+                onChange={(e) => setResetForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+              />
+              <input
+                type="password"
+                placeholder="Confirm new password"
+                value={resetForm.confirmPassword}
+                onChange={(e) => setResetForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+              />
+              {resetError && <p className="text-sm text-red-500">{resetError}</p>}
+            </div>
+
+            <button
+              onClick={handleResetPassword}
+              disabled={resetSubmitting}
+              className="mt-5 w-full px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 disabled:opacity-60 text-white font-semibold"
+            >
+              {resetSubmitting ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -16,7 +16,7 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        match: [/^[0-9]{2}[a-z]{3}[0-9]{3}\.[a-z0-9]+@giet\.edu$/i, 'Please provide a valid college email address'],
+        lowercase: true,
         trim: true
       },
       
@@ -34,6 +34,10 @@ const userSchema = new Schema({
         type: String,
         required: true
       },
+      branch: {
+        type: String,
+        trim: true
+      },
       linkedin: {
         type: String,
         match: [/^https?:\/\/(www\.)?linkedin\.com\/.*$/, 'Please provide a valid LinkedIn profile URL'],
@@ -48,6 +52,10 @@ const userSchema = new Schema({
         type: String,
         required: true,
         minlength: 6
+      },
+      passwordResetRequired: {
+        type: Boolean,
+        default: false
       },
       role: {
         type: String,

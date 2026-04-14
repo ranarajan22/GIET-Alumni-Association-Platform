@@ -30,8 +30,11 @@ function Login() {
 
     const validate = () => {
         const newErrors = {};
-        if (!loginInfo.collegeEmail) newErrors.collegeEmail = 'Email is required';
-        else if (!/^\S+@\S+\.\S+$/.test(loginInfo.collegeEmail)) newErrors.collegeEmail = 'Enter a valid email';
+        if (!loginInfo.collegeEmail) {
+            newErrors.collegeEmail = userType === 'alumni' ? 'Roll number or email is required' : 'Email is required';
+        } else if (userType !== 'alumni' && !/^\S+@\S+\.\S+$/.test(loginInfo.collegeEmail)) {
+            newErrors.collegeEmail = 'Enter a valid email';
+        }
         if (!loginInfo.password) newErrors.password = 'Password is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -44,8 +47,12 @@ function Login() {
         const url = userType === 'alumni' ? '/alumni/login' : '/auth/login';
 
         try {
-            const { data } = await api.post(url, loginInfo);
-            const { success, message, token, fullname, profilePhoto, _id, role } = data;
+            const payload = userType === 'alumni'
+                ? { identifier: loginInfo.collegeEmail, password: loginInfo.password }
+                : loginInfo;
+
+            const { data } = await api.post(url, payload);
+            const { success, message, token, fullname, profilePhoto, _id, role, passwordResetRequired } = data;
 
             if (success) {
                 handleSuccess(message);
@@ -59,6 +66,11 @@ function Login() {
                 localStorage.setItem('profilePhoto', profilePhoto);
                 localStorage.setItem('loggedInUser', fullname);
                 localStorage.setItem('userId', _id);
+                if (passwordResetRequired) {
+                    localStorage.setItem('forcePasswordReset', 'true');
+                } else {
+                    localStorage.removeItem('forcePasswordReset');
+                }
                 // Enforce correct role routing and disallow admin auth via student/alumni selection
                 let effectiveRole = userType;
                 if (role === 'admin') {
@@ -84,7 +96,8 @@ function Login() {
                 handleError(message || 'Login failed');
             }
         } catch (error) {
-            const message = error.response?.data?.message || error.message || 'Login failed';
+            const detail = error.response?.data?.details?.[0];
+            const message = detail || error.response?.data?.message || error.message || 'Login failed';
             handleError(message);
         }
     };
@@ -151,7 +164,7 @@ function Login() {
 
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
-                                <label htmlFor="collegeEmail" className="text-slate-300 text-sm mb-2 block">Email</label>
+                                <label htmlFor="collegeEmail" className="text-slate-300 text-sm mb-2 block">{userType === 'alumni' ? 'Roll Number or Email' : 'Email'}</label>
                                 <input
                                     type="text"
                                     id="collegeEmail"
@@ -159,7 +172,7 @@ function Login() {
                                     value={loginInfo.collegeEmail}
                                     onChange={handleChange}
                                     className="w-full bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                                    placeholder="name@college.edu"
+                                    placeholder={userType === 'alumni' ? 'Roll number (recommended) or email' : 'name@college.edu'}
                                 />
                                 {errors.collegeEmail && <p className="text-rose-400 text-xs mt-1">{errors.collegeEmail}</p>}
                             </div>

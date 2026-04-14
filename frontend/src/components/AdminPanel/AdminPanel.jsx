@@ -11,6 +11,7 @@ import AdvancedMetrics from './AdvancedMetrics';
 import ContactMessages from './ContactMessages';
 import SubscribersList from './SubscribersList';
 import AdminPosts from './AdminPosts';
+import BulkAlumniImport from './BulkAlumniImport';
 import { assets } from '../../assets/assets';
 
 function AdminPanel() {
@@ -234,6 +235,7 @@ function AdminPanel() {
                     )}
                     {currentView === 'students' && <Students />}
                     {currentView === 'alumni' && <Alumni />}
+                    {currentView === 'import' && <BulkAlumniImport />}
                     {currentView === 'all-alumni' && <Alumni showAll={true} />}
                     {currentView === 'messages' && <ContactMessages />}
                     {currentView === 'subscribers' && <SubscribersList />}

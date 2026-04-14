@@ -9,6 +9,7 @@ function Students() {
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCourse, setFilterCourse] = useState('');
+  const [filterBranch, setFilterBranch] = useState('');
   const [filterGradYear, setFilterGradYear] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
@@ -46,8 +47,10 @@ function Students() {
         s.collegeEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         s.usn?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCourse = !filterCourse || s.course === filterCourse;
+      const studentBranch = s.branch || s.fieldOfStudy;
+      const matchesBranch = !filterBranch || studentBranch === filterBranch;
       const matchesYear = !filterGradYear || s.graduationYear.toString() === filterGradYear;
-      return matchesSearch && matchesCourse && matchesYear;
+      return matchesSearch && matchesCourse && matchesBranch && matchesYear;
     });
 
     // Sort
@@ -65,7 +68,7 @@ function Students() {
     });
 
     return result;
-  }, [students, searchQuery, filterCourse, filterGradYear, sortBy]);
+  }, [students, searchQuery, filterCourse, filterBranch, filterGradYear, sortBy]);
 
   // Pagination
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -74,6 +77,7 @@ function Students() {
 
   // Get unique values for filters
   const courses = [...new Set(students.map((s) => s.course))].filter(Boolean).sort();
+  const branches = [...new Set(students.map((s) => s.branch || s.fieldOfStudy))].filter(Boolean).sort();
   const gradYears = [...new Set(students.map((s) => s.graduationYear))].sort().reverse();
 
   const handleExportCSV = () => {
@@ -132,7 +136,7 @@ function Students() {
       </div>
 
       {/* Filters & Search */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -180,6 +184,22 @@ function Students() {
         </select>
 
         <select
+          value={filterBranch}
+          onChange={(e) => {
+            setFilterBranch(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
+        >
+          <option value="">All Branches</option>
+          {branches.map((b) => (
+            <option key={b} value={b}>
+              {b}
+            </option>
+          ))}
+        </select>
+
+        <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
@@ -218,6 +238,7 @@ function Students() {
                     <th className="px-4 py-3">Email</th>
                     <th className="px-4 py-3">USN</th>
                     <th className="px-4 py-3">Course</th>
+                    <th className="px-4 py-3">Branch</th>
                     <th className="px-4 py-3">Grad Year</th>
                     <th className="px-4 py-3">Joined</th>
                   </tr>
@@ -229,6 +250,7 @@ function Students() {
                       <td className="px-4 py-3 text-slate-300 text-xs sm:text-sm">{s.collegeEmail}</td>
                       <td className="px-4 py-3 text-slate-400">{s.usn}</td>
                       <td className="px-4 py-3">{s.course}</td>
+                      <td className="px-4 py-3">{s.branch || s.fieldOfStudy || '—'}</td>
                       <td className="px-4 py-3">{s.graduationYear}</td>
                       <td className="px-4 py-3 text-slate-400 text-xs">
                         {new Date(s.createdAt).toLocaleDateString()}

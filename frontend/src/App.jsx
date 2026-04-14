@@ -16,7 +16,6 @@ const Login = lazy(() => import('./pages/Login'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const SupportUs = lazy(() => import('./components/SupportUs'));
-const AlumniReg = lazy(() => import('./pages/AlumniReg'));
 const Features = lazy(() => import('./components/Features'));
 const AdminPanel = lazy(() => import('./components/AdminPanel/AdminPanel'));
 
@@ -59,7 +58,7 @@ function App() {
               <Route path="/features" element={<Features />} />
               <Route path="/roleselection" element={<RoleSelection />} />
               <Route path="/student-register" element={<StudentReg />} />
-              <Route path="/alumni-register" element={<AlumniReg />} />
+              <Route path="/alumni-register" element={<NotFound />} />
               <Route path="*" element={<NotFound />} />
             </Route>
             {/* Admin Panel - Separate route without Layout */}

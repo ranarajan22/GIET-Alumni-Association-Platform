@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { CheckCircle2, Shield, AlertTriangle, Loader2 } from 'lucide-react';
+import { CheckCircle2, Shield, AlertTriangle, Search } from 'lucide-react';
 
 const Alumni = ({ showAll = false }) => {
   const [alumniList, setAlumni] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [batchFilter, setBatchFilter] = useState('');
+  const [courseFilter, setCourseFilter] = useState('');
+  const [branchFilter, setBranchFilter] = useState('');
+  const [resetInfo, setResetInfo] = useState(null);
   const apiBase = API_BASE_URL;
 
   const makeAbsoluteUrl = (value) => {
@@ -59,6 +64,22 @@ const Alumni = ({ showAll = false }) => {
     fetchAlumni();
   }, [showAll]);
 
+  const filteredAlumni = alumniList.filter((alumni) => {
+    const branchValue = alumni.branch || alumni.fieldOfStudy;
+    const matchesSearch = !search ||
+      alumni.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      alumni.collegeEmail?.toLowerCase().includes(search.toLowerCase()) ||
+      alumni.registrationNumber?.toLowerCase().includes(search.toLowerCase());
+    const matchesBatch = !batchFilter || String(alumni.graduationYear) === batchFilter;
+    const matchesCourse = !courseFilter || alumni.course === courseFilter;
+    const matchesBranch = !branchFilter || branchValue === branchFilter;
+    return matchesSearch && matchesBatch && matchesCourse && matchesBranch;
+  });
+
+  const batches = [...new Set(alumniList.map((a) => a.graduationYear))].filter(Boolean).sort((a, b) => a - b);
+  const courses = [...new Set(alumniList.map((a) => a.course))].filter(Boolean).sort();
+  const branches = [...new Set(alumniList.map((a) => a.branch || a.fieldOfStudy))].filter(Boolean).sort();
+
   // Function to handle verification
   const handleVerify = async (id) => {
     try {
@@ -74,6 +95,22 @@ const Alumni = ({ showAll = false }) => {
     }
   };
 
+  const handleResetPasswordToDob = async (id) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.put(`${apiBase}/admin/alumni/${id}/reset-password-dob`, null, { headers });
+      const data = response.data || {};
+      setResetInfo({
+        fullName: data.fullName,
+        registrationNumber: data.registrationNumber,
+        temporaryPassword: data.temporaryPassword
+      });
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to reset password');
+    }
+  };
+
   const skeletons = Array.from({ length: 3 });
 
   return (
@@ -86,6 +123,37 @@ const Alumni = ({ showAll = false }) => {
         </div>
         <Shield className="w-6 h-6 text-cyan-400" />
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search name/email/roll"
+            className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100"
+          />
+        </div>
+        <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
+          <option value="">All Batches</option>
+          {batches.map((batch) => <option key={batch} value={batch}>{batch}</option>)}
+        </select>
+        <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
+          <option value="">All Courses</option>
+          {courses.map((course) => <option key={course} value={course}>{course}</option>)}
+        </select>
+        <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
+          <option value="">All Branches</option>
+          {branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
+        </select>
+      </div>
+
+      {resetInfo && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-sm">
+          Temporary password reset for {resetInfo.fullName} ({resetInfo.registrationNumber}):
+          <span className="font-bold ml-2">{resetInfo.temporaryPassword}</span>
+        </div>
+      )}
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
@@ -107,14 +175,14 @@ const Alumni = ({ showAll = false }) => {
           <AlertTriangle className="w-4 h-4" />
           {error}
         </div>
-      ) : alumniList.length === 0 ? (
+      ) : filteredAlumni.length === 0 ? (
         <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-slate-300">
           <Shield className="w-8 h-8 mx-auto text-slate-500 mb-2" />
-          {showAll ? 'No alumni registered yet.' : 'No pending verifications.'}
+          No alumni found for selected filters.
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {alumniList.map((alumni) => (
+          {filteredAlumni.map((alumni) => (
             <div key={alumni._id} className="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-lg">
               <div className="flex items-center gap-4">
                 <img
@@ -194,6 +262,14 @@ const Alumni = ({ showAll = false }) => {
                   </button>
                 </div>
               )}
+              <div className="mt-3">
+                <button
+                  onClick={() => handleResetPasswordToDob(alumni._id)}
+                  className="w-full px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-sm font-semibold text-white"
+                >
+                  Reset Password to DOB
+                </button>
+              </div>
             </div>
           ))}
         </div>

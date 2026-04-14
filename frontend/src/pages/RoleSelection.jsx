@@ -39,17 +39,17 @@ function RoleSelection() {
             <div className="flex items-center gap-3 mb-4">
               <img src={assets.Alumni} alt="Alumni" className="w-16 h-16 object-contain" />
               <div>
-                <p className="text-white text-xl font-semibold">Register as Alumni</p>
-                <p className="text-slate-400 text-sm">Guide students and expand your network.</p>
+                <p className="text-white text-xl font-semibold">Alumni Access</p>
+                <p className="text-slate-400 text-sm">Accounts are provisioned by admin through batch imports.</p>
               </div>
             </div>
             <ul className="text-slate-300 text-sm space-y-2 mb-6">
-              <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-emerald-400"></span>Verify credentials and showcase expertise</li>
-              <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-emerald-400"></span>Host mentorships and events</li>
-              <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-emerald-400"></span>Share jobs and connect with students</li>
+              <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-emerald-400"></span>Login with Roll Number and temporary password</li>
+              <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-emerald-400"></span>Change password after first login</li>
+              <li className="flex items-center gap-2"><span className="h-1 w-1 rounded-full bg-emerald-400"></span>Contact admin if account is not yet imported</li>
             </ul>
-            <button onClick={() => navigate('/alumni-register')} className="w-full bg-gradient-to-r from-emerald-500 to-green-500 text-white py-3 rounded-xl font-semibold hover:from-emerald-400 hover:to-green-400 transition">Alumni Registration</button>
-            <p className="text-slate-400 text-center text-sm mt-4">Already have an account? <Link to="/login" className="text-emerald-300 hover:text-emerald-200 font-semibold">Login</Link></p>
+            <button onClick={() => navigate('/login')} className="w-full bg-gradient-to-r from-emerald-500 to-green-500 text-white py-3 rounded-xl font-semibold hover:from-emerald-400 hover:to-green-400 transition">Alumni Login</button>
+            <p className="text-slate-400 text-center text-sm mt-4">Need help with credentials? <Link to="/contact" className="text-emerald-300 hover:text-emerald-200 font-semibold">Contact Admin</Link></p>
           </div>
         </div>
       </div>

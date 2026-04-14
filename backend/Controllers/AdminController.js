@@ -5,6 +5,15 @@ const JobOpening = require('../Models/JobOpening');
 const Mentorship = require('../Models/Mentorship');
 const bcrypt = require('bcrypt');
 
+function tempPasswordFromDob(dob) {
+  const date = new Date(dob);
+  if (Number.isNaN(date.getTime())) return '';
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const yyyy = String(date.getFullYear());
+  return `${dd}${mm}${yyyy}`;
+}
+
 // Controller to get all alumni (for admin)
 const getAllAlumni = async (req, res) => {
   try {
@@ -196,4 +205,36 @@ const changePassword = async (req, res) => {
   }
 };
 
-module.exports = { getAllAlumni, verifyAlumni, getMetrics, getStudents, getActivity, changePassword };
+const resetAlumniPasswordToDob = async (req, res) => {
+  try {
+    const alumni = await Alumni.findById(req.params.id);
+    if (!alumni) {
+      return res.status(404).json({ success: false, message: 'Alumni not found' });
+    }
+
+    const tempPassword = tempPasswordFromDob(alumni.dob);
+    if (!tempPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'DOB missing or invalid for this alumni. Cannot reset to DOB pattern.'
+      });
+    }
+
+    alumni.password = await bcrypt.hash(tempPassword, 10);
+    alumni.passwordResetRequired = true;
+    await alumni.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Password reset to DOB pattern successfully',
+      temporaryPassword: tempPassword,
+      registrationNumber: alumni.registrationNumber,
+      fullName: alumni.fullName
+    });
+  } catch (error) {
+    console.error('Error resetting alumni password:', error);
+    return res.status(500).json({ success: false, message: 'Failed to reset password' });
+  }
+};
+
+module.exports = { getAllAlumni, verifyAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob };
