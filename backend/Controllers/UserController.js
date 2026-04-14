@@ -1,6 +1,22 @@
 const User = require('../Models/users'); // Ensure you are importing User correctly
 const Alumni = require('../Models/alumni'); // Import Alumni model
 
+const NETWORK_STUDENT_FIELDS = [
+    '_id',
+    'fullName',
+    'graduationYear',
+    'collegeEmail',
+    'course',
+    'usn',
+    'branch',
+    'fieldOfStudy',
+    'profilePhoto',
+    'linkedin',
+    'github',
+    'role',
+    'createdAt'
+].join(' ');
+
 const getAllStudents = async (req, res) => {
   try {
                 const filter = { role: 'student' };
@@ -19,8 +35,8 @@ const getAllStudents = async (req, res) => {
                     ];
                 }
 
-                // Return only student roles and omit sensitive data like password
-                const students = await User.find(filter).select('-password');
+                // Student network list should expose only required profile fields + social links.
+                const students = await User.find(filter).select(NETWORK_STUDENT_FIELDS);
     res.status(200).json({ students });
   } catch (error) {
     console.error('Error fetching students:', error.message);

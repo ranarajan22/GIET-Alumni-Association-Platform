@@ -54,12 +54,7 @@ function BulkAlumniImport() {
       const response = await axios.post(
         `${API_BASE_URL}/admin/alumni-import?mode=${mode}`,
         buildFormData(),
-        {
-          headers: {
-            ...headers,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
+        { headers }
       );
 
       if (mode === 'preview') setPreview(response.data);
@@ -68,31 +63,70 @@ function BulkAlumniImport() {
       }
       await fetchHistory();
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Import failed');
+      const backendMessage = err.response?.data?.message;
+      if (!backendMessage && err.message === 'Network Error') {
+        setError('Network Error: Upload request failed. Please verify backend is reachable and CORS/env settings are correct.');
+      } else {
+        setError(backendMessage || err.message || 'Import failed');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const downloadTemplate = () => {
-    const headers = [
+  const downloadTemplate = (mode = 'required') => {
+    const requiredHeaders = [
       'Roll No',
       'Name of the Alumni',
       'Branch',
       'Batch Pass Out',
       'Course',
       'D O B',
-      'Email ID',
-      'Mobile',
-      'Gender'
+      'Email ID'
     ];
-    const sample = ['22CSE001', 'Sample Student', 'CSE', '2022', 'BTECH', '15/08/2000', '22cse001@giet.edu', '9876543210', 'M'];
+
+    const fullHeaders = [
+      ...requiredHeaders,
+      'Mobile',
+      'Gender',
+      'Date of Marriage',
+      'Current Company',
+      'Designation',
+      'Current Location',
+      'LinkedIn',
+      'GitHub'
+    ];
+
+    const requiredSample = [
+      '22CSE001',
+      'Sample Alumni',
+      'CSE',
+      '2022',
+      'BTECH',
+      '15/08/2000',
+      '22cse001@giet.edu'
+    ];
+
+    const fullSample = [
+      ...requiredSample,
+      '9876543210',
+      'M',
+      '20/11/2025',
+      'Infosys',
+      'Software Engineer',
+      'Bengaluru',
+      'https://www.linkedin.com/in/sample',
+      'https://github.com/sample'
+    ];
+
+    const headers = mode === 'full' ? fullHeaders : requiredHeaders;
+    const sample = mode === 'full' ? fullSample : requiredSample;
     const csvContent = `${headers.join(',')}\n${sample.join(',')}\n`;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', 'alumni_import_template.csv');
+    link.setAttribute('download', mode === 'full' ? 'alumni_import_full_template.csv' : 'alumni_import_required_template.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -167,10 +201,16 @@ function BulkAlumniImport() {
 
       <div className="flex flex-wrap gap-3">
         <button
-          onClick={downloadTemplate}
+          onClick={() => downloadTemplate('required')}
           className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm font-semibold text-white"
         >
-          Download Template
+          Download Required Template
+        </button>
+        <button
+          onClick={() => downloadTemplate('full')}
+          className="px-4 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-sm font-semibold text-white"
+        >
+          Download Full Admin Template
         </button>
         <button
           onClick={() => runImport('preview')}

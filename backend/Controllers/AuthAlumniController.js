@@ -46,14 +46,6 @@ const loginAlumni = async (req, res) => {
             });
         }
 
-        // Check verification status
-        if (!alumni.verified) {
-            return res.status(403).json({
-                message: 'Account not verified. Please ask Admin to verify your account.',
-                success: false
-            });
-        }
-
         // Generate JWT token
         const token = jwt.sign({ userId: alumni._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 

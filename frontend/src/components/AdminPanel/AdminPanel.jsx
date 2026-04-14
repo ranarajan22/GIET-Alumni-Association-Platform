@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Users, GraduationCap, Clock, CheckCircle, TrendingUp, Activity } from 'lucide-react';
+import { Users, GraduationCap, CheckCircle, TrendingUp, Activity } from 'lucide-react';
 import AdminHeader from './AdminHeader';
 import Sidebar from './Sidebar';
 import Alumni from './Alumni';
@@ -20,7 +20,6 @@ function AdminPanel() {
     const [stats, setStats] = useState({
         totalStudents: 0,
         totalAlumni: 0,
-        pendingVerifications: 0,
         verifiedAlumni: 0,
         eventsCount: 0,
         jobsCount: 0,
@@ -51,7 +50,6 @@ function AdminPanel() {
                 totalStudents: response.data.totalStudents,
                 totalAlumni: response.data.totalAlumni,
                 verifiedAlumni: response.data.verifiedAlumni,
-                pendingVerifications: response.data.pendingVerifications,
                 eventsCount: response.data.eventsCount,
                 jobsCount: response.data.jobsCount,
                 mentorshipsCount: response.data.mentorshipsCount
@@ -104,7 +102,7 @@ function AdminPanel() {
                         {currentView === 'all' && (
                             <>
                                 {/* Stats Cards - Real Time */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                                 <button 
                                     onClick={() => setCurrentView('students')}
                                     className="bg-gradient-to-br from-blue-600/20 to-blue-500/10 border border-blue-500/30 rounded-2xl p-5 hover:scale-105 transition-transform cursor-pointer text-left"
@@ -126,17 +124,8 @@ function AdminPanel() {
                                         <span className="text-3xl font-bold text-white">{stats.totalAlumni}</span>
                                     </div>
                                     <p className="text-sm font-medium text-slate-200">Total Alumni</p>
-                                    <p className="text-xs text-slate-400 mt-1">Verified: {stats.verifiedAlumni}</p>
+                                    <p className="text-xs text-slate-400 mt-1">Registered: {stats.verifiedAlumni}</p>
                                 </button>
-
-                                <div className="bg-gradient-to-br from-amber-600/20 to-amber-500/10 border border-amber-500/30 rounded-2xl p-5 hover:scale-105 transition-transform">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <Clock className="w-8 h-8 text-amber-400" />
-                                        <span className="text-3xl font-bold text-white">{stats.pendingVerifications}</span>
-                                    </div>
-                                    <p className="text-sm font-medium text-slate-200">Pending Verifications</p>
-                                    <p className="text-xs text-slate-400 mt-1">Awaiting approval</p>
-                                </div>
 
                                 <div className="bg-gradient-to-br from-green-600/20 to-green-500/10 border border-green-500/30 rounded-2xl p-5 hover:scale-105 transition-transform">
                                     <div className="flex items-center justify-between mb-3">

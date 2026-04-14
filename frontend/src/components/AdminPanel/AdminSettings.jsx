@@ -9,7 +9,6 @@ function AdminSettings() {
     appName: 'Alumni Connect',
     maintenanceMode: false,
     emailNotifications: true,
-    autoVerifyAlumni: false,
     maxUploadSize: 10, // MB
   });
 
@@ -26,7 +25,7 @@ function AdminSettings() {
   });
 
   const [logs, setLogs] = useState([
-    { id: 1, action: 'Alumni Verification', by: 'Admin', time: '2 hours ago', status: 'success' },
+    { id: 1, action: 'Alumni Import', by: 'Admin', time: '2 hours ago', status: 'success' },
     { id: 2, action: 'Student Registration', by: 'System', time: '1 day ago', status: 'success' },
     { id: 3, action: 'Data Export', by: 'Admin', time: '3 days ago', status: 'success' },
   ]);
@@ -267,23 +266,6 @@ function AdminSettings() {
                   }`}
                 >
                   {settings.maintenanceMode ? 'ON' : 'OFF'}
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                <div>
-                  <p className="font-semibold text-white">Auto-Verify Alumni</p>
-                  <p className="text-xs text-slate-400">Automatically verify alumni registrations</p>
-                </div>
-                <button
-                  onClick={() => handleSettingChange('autoVerifyAlumni', !settings.autoVerifyAlumni)}
-                  className={`px-4 py-2 rounded-lg font-semibold transition ${
-                    settings.autoVerifyAlumni
-                      ? 'bg-emerald-600/20 text-emerald-300 border border-emerald-600/50'
-                      : 'bg-slate-700 text-slate-200 hover:bg-slate-600'
-                  }`}
-                >
-                  {settings.autoVerifyAlumni ? 'ON' : 'OFF'}
                 </button>
               </div>
 

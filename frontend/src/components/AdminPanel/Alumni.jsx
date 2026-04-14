@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { CheckCircle2, Shield, AlertTriangle, Search } from 'lucide-react';
+import { Shield, AlertTriangle, Search } from 'lucide-react';
 
-const Alumni = ({ showAll = false }) => {
+const Alumni = ({ showAll = true }) => {
   const [alumniList, setAlumni] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -21,6 +21,13 @@ const Alumni = ({ showAll = false }) => {
     return `${apiBase}/${value.replace(/^\//, '')}`;
   };
 
+  const formatDate = (value) => {
+    if (!value) return '—';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return parsed.toLocaleDateString();
+  };
+
   // Fetch the alumni data
   const fetchAlumni = async () => {
     try {
@@ -35,16 +42,9 @@ const Alumni = ({ showAll = false }) => {
       // Check if the alumni data exists and is an array
       const alumniData = response.data && Array.isArray(response.data.alumni) ? response.data.alumni : (Array.isArray(response.data) ? response.data : []);
       
-      // If alumniData is an array, filter based on showAll prop
+      // If alumniData is an array, always show full admin list
       if (alumniData.length > 0) {
-        if (showAll) {
-          // Show all alumni
-          setAlumni(alumniData);
-        } else {
-          // Show only unverified alumni
-          const unverifiedAlumni = alumniData.filter(alum => !alum.verified);
-          setAlumni(unverifiedAlumni);
-        }
+        setAlumni(alumniData);
       } else {
         console.log('No alumni found');
         setAlumni([]);
@@ -80,21 +80,6 @@ const Alumni = ({ showAll = false }) => {
   const courses = [...new Set(alumniList.map((a) => a.course))].filter(Boolean).sort();
   const branches = [...new Set(alumniList.map((a) => a.branch || a.fieldOfStudy))].filter(Boolean).sort();
 
-  // Function to handle verification
-  const handleVerify = async (id) => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      console.log('Verifying alumni:', id);
-      await axios.put(`${apiBase}/admin/alumni/${id}/verify`, null, { headers });
-      // Re-fetch the alumni list after verification
-      fetchAlumni();
-    } catch (error) {
-      console.error('Error verifying alumni:', error.message, error.response?.data || error);
-      setError(`Failed to verify alumni: ${error.response?.data?.message || error.message}`);
-    }
-  };
-
   const handleResetPasswordToDob = async (id) => {
     try {
       const token = localStorage.getItem('token');
@@ -117,9 +102,9 @@ const Alumni = ({ showAll = false }) => {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">{showAll ? 'Complete List' : 'Verification'}</p>
-          <h2 className="text-2xl font-bold text-white">{showAll ? 'All Alumni' : 'Pending Alumni'}</h2>
-          <p className="text-sm text-slate-400">{showAll ? 'View all registered alumni' : 'Review and verify submitted profiles'}</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Complete List</p>
+          <h2 className="text-2xl font-bold text-white">All Alumni</h2>
+          <p className="text-sm text-slate-400">View all directly registered alumni profiles</p>
         </div>
         <Shield className="w-6 h-6 text-cyan-400" />
       </div>
@@ -193,12 +178,6 @@ const Alumni = ({ showAll = false }) => {
                 <div className="space-y-1">
                   <h3 className="font-bold text-lg text-white">{alumni.fullName}</h3>
                   <p className="text-sm text-slate-400">Class of {alumni.graduationYear}</p>
-                  {alumni.verified && (
-                    <div className="flex items-center gap-1 text-emerald-400 text-xs">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Verified
-                    </div>
-                  )}
                 </div>
               </div>
               <div className="mt-4 space-y-2 text-sm text-slate-300">
@@ -208,6 +187,18 @@ const Alumni = ({ showAll = false }) => {
                 )}
                 {(alumni.course || alumni.fieldOfStudy) && (
                   <p className="flex justify-between"><span className="text-slate-400">Course / Field:</span> <span className="text-white text-right">{alumni.course || '—'}{alumni.course && alumni.fieldOfStudy ? ' • ' : ''}{alumni.fieldOfStudy || ''}</span></p>
+                )}
+                {showAll && (
+                  <>
+                    <p className="flex justify-between"><span className="text-slate-400">Branch:</span> <span className="text-white">{alumni.branch || '—'}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Mobile:</span> <span className="text-white">{alumni.mobile || '—'}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Gender:</span> <span className="text-white">{alumni.gender || '—'}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Date of Birth:</span> <span className="text-white">{formatDate(alumni.dob)}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Date of Marriage:</span> <span className="text-white">{formatDate(alumni.dateOfMarriage)}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Current Company:</span> <span className="text-white text-right">{alumni.currentCompany || '—'}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Designation:</span> <span className="text-white text-right">{alumni.designation || '—'}</span></p>
+                    <p className="flex justify-between"><span className="text-slate-400">Current Location:</span> <span className="text-white text-right">{alumni.currentLocation || '—'}</span></p>
+                  </>
                 )}
                 {alumni.usn && (
                   <p className="flex justify-between"><span className="text-slate-400">USN:</span> <span className="text-white">{alumni.usn}</span></p>
@@ -248,20 +239,6 @@ const Alumni = ({ showAll = false }) => {
                   </div>
                 )}
               </div>
-              {!showAll && !alumni.verified && (
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-amber-300 text-sm">
-                    <AlertTriangle className="w-4 h-4" />
-                    Pending
-                  </div>
-                  <button
-                    onClick={() => handleVerify(alumni._id)}
-                    className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-sm font-semibold text-white shadow"
-                  >
-                    Verify
-                  </button>
-                </div>
-              )}
               <div className="mt-3">
                 <button
                   onClick={() => handleResetPasswordToDob(alumni._id)}

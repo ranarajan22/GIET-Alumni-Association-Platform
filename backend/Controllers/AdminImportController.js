@@ -42,7 +42,13 @@ const HEADER_PATTERNS = {
   dob: ['d o b', 'dob', 'date of birth', 'birth'],
   collegeEmail: ['email id', 'college email', 'email'],
   mobile: ['mobile', 'phone', 'contact'],
-  gender: ['gender', 'sex', 'm f']
+  gender: ['gender', 'sex', 'm f'],
+  dateOfMarriage: ['date of marriage', 'marriage date', 'dom'],
+  currentCompany: ['current company', 'company', 'organization', 'organisation'],
+  designation: ['designation', 'job title', 'role', 'position'],
+  currentLocation: ['current location', 'location', 'city'],
+  linkedin: ['linkedin', 'linkedin url'],
+  github: ['github', 'github url']
 };
 
 function normalizeText(value) {
@@ -155,9 +161,15 @@ function getCell(row, idx) {
   return normalizeText(row[idx]);
 }
 
-async function parseWorkbook(filePath, fileName, options = {}) {
+async function parseWorkbook(fileInput, fileName, options = {}) {
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(filePath);
+
+  // Support both memory uploads (Buffer) and disk uploads (file path)
+  if (Buffer.isBuffer(fileInput)) {
+    await workbook.xlsx.load(fileInput);
+  } else {
+    await workbook.xlsx.readFile(fileInput);
+  }
   const sheet = workbook.worksheets[0];
   const rows = [];
 
@@ -198,6 +210,12 @@ async function parseWorkbook(filePath, fileName, options = {}) {
     const collegeEmail = buildEmail(rollNo, getCell(row, columns.collegeEmail));
     const mobile = getCell(row, columns.mobile);
     const gender = getCell(row, columns.gender);
+    const dateOfMarriage = parseExcelDate(row[columns.dateOfMarriage], date1904);
+    const currentCompany = getCell(row, columns.currentCompany);
+    const designation = getCell(row, columns.designation);
+    const currentLocation = getCell(row, columns.currentLocation);
+    const linkedin = getCell(row, columns.linkedin);
+    const github = getCell(row, columns.github);
 
     const isRowEmpty = !rollNo && !fullName && !branchRaw && !batchText;
     if (isRowEmpty) continue;
@@ -223,7 +241,13 @@ async function parseWorkbook(filePath, fileName, options = {}) {
       tempPassword,
       collegeEmail,
       mobile,
-      gender
+      gender,
+      dateOfMarriage,
+      currentCompany,
+      designation,
+      currentLocation,
+      linkedin,
+      github
     });
   }
 
@@ -295,7 +319,8 @@ const importAlumniFromExcel = async (req, res) => {
   }
 
   try {
-    const { records, errors } = await parseWorkbook(file.path, file.originalname, {
+    const workbookSource = file.buffer || file.path;
+    const { records, errors } = await parseWorkbook(workbookSource, file.originalname, {
       defaultCourse: req.body.defaultCourse,
       batch: req.body.batch,
       course: req.body.course
@@ -352,12 +377,16 @@ const importAlumniFromExcel = async (req, res) => {
               role: 'alumni',
               importSource: file.originalname,
               dob: record.dob || undefined,
+              dateOfMarriage: record.dateOfMarriage || undefined,
               mobile: record.mobile || undefined,
-              gender: record.gender || undefined
+              gender: record.gender || undefined,
+              currentCompany: record.currentCompany || undefined,
+              designation: record.designation || undefined,
+              currentLocation: record.currentLocation || undefined,
+              linkedin: record.linkedin || undefined,
+              github: record.github || undefined
             },
             $setOnInsert: {
-              linkedin: '',
-              github: '',
               profilePhoto: ''
             }
           },

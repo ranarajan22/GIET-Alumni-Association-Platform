@@ -54,7 +54,8 @@ const Network = ({ onChatClick, userRole = null }) => {
           const studentsData = (studentsResponse.data.students || []).map(student => ({
             ...student,
             email: student.collegeEmail, // Map collegeEmail to email for consistency
-            branch: student.branch || student.fieldOfStudy
+            branch: student.branch || student.fieldOfStudy,
+            role: 'student'
           }));
           setStudents(studentsData);
           setFacets(studentFacetsResponse.data || { batches: [], courses: [], branches: [] });
@@ -67,7 +68,8 @@ const Network = ({ onChatClick, userRole = null }) => {
           const alumniData = (alumniResponse.data.alumni || []).map(alumni => ({
             ...alumni,
             email: alumni.collegeEmail, // Map collegeEmail to email for consistency
-            branch: alumni.branch || alumni.fieldOfStudy
+            branch: alumni.branch || alumni.fieldOfStudy,
+            role: 'alumni'
           }));
           setAlumni(alumniData);
           setFacets(alumniFacetsResponse.data || { batches: [], courses: [], branches: [] });

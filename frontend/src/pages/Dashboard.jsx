@@ -10,7 +10,7 @@ import Card from "../components/Card";
 import ScheduleEventForm from "../components/ScheduleEvent";
 import HostMentorshipForm from "../components/HostMentorship";
 import JobOpeningsForm from "../components/JobOpenings";
-import { Menu, CheckCircle, AlertCircle, Bell } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import { assets } from "../assets/assets";
 import Network from "../components/Network";
 import OpenSource from "../components/OpenSource";
@@ -342,38 +342,6 @@ function Dashboard() {
     );
   };
 
-  const renderVerificationStatus = () => {
-    if (role !== "alumni" || !profileData?.alumni) return null;
-    
-    const isVerified = profileData.alumni.verified;
-    
-    return (
-      <div className={`bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4 mx-2 sm:mx-4 border-l-4 ${
-        isVerified ? 'border-l-green-600' : 'border-l-yellow-600'
-      }`}>
-        <div className="flex items-center gap-3">
-          {isVerified ? (
-            <>
-              <CheckCircle className="text-green-600 w-6 h-6" />
-              <div>
-                <h3 className="font-semibold text-green-600">Verified Alumni</h3>
-                <p className="text-sm text-gray-600">Your alumni status is verified</p>
-              </div>
-            </>
-          ) : (
-            <>
-              <AlertCircle className="text-yellow-600 w-6 h-6" />
-              <div>
-                <h3 className="font-semibold text-yellow-600">Pending Verification</h3>
-                <p className="text-sm text-gray-600">Your alumni status is under review</p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
-
   const renderStats = () => {
     // Use actual stats or provide default empty stats
     const statsData = stats?.stats || { totalEvents: 0, totalMentorships: 0, totalJobOpenings: 0, unreadMessages: 0 };
@@ -459,7 +427,6 @@ function Dashboard() {
                 </div>
 
                 <AlumniDashboardHeader stats={stats} profileData={profileData} />
-                {renderVerificationStatus()}
                 {renderProfileCompleteness()}
                 {renderStats()}
                 <Achievements stats={stats?.stats || { totalEvents: 0, totalMentorships: 0, totalJobOpenings: 0 }} />

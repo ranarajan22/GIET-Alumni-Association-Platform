@@ -26,41 +26,22 @@ const getAllAlumni = async (req, res) => {
   }
 };
 
-// Controller to verify alumni (by admin)
-const verifyAlumni = async (req, res) => {
-  try {
-    const alumni = await Alumni.findByIdAndUpdate(
-      req.params.id,
-      { verified: true }, // Update the 'verified' field
-      { new: true }
-    );
-    if (!alumni) {
-      return res.status(404).json({ message: 'Alumni not found' });
-    }
-    res.json({ message: 'Alumni verified successfully', alumni });
-  } catch (error) {
-    res.status(500).json({ message: 'Error verifying alumni' });
-  }
-};
-
 // Real-time-ish metrics: counts
 const getMetrics = async (req, res) => {
   try {
     const totalStudents = await User.countDocuments({ role: 'student' });
     const totalAlumni = await Alumni.countDocuments({});
-    const verifiedAlumni = await Alumni.countDocuments({ verified: true });
-    const pendingVerifications = await Alumni.countDocuments({ verified: false });
+    const verifiedAlumni = totalAlumni;
     const eventsCount = await Event.countDocuments({});
     const jobsCount = await JobOpening.countDocuments({});
     const mentorshipsCount = await Mentorship.countDocuments({});
 
-    console.log('Metrics:', { totalStudents, totalAlumni, verifiedAlumni, pendingVerifications, eventsCount, jobsCount, mentorshipsCount });
+    console.log('Metrics:', { totalStudents, totalAlumni, verifiedAlumni, eventsCount, jobsCount, mentorshipsCount });
 
     res.status(200).json({
       totalStudents,
       totalAlumni,
       verifiedAlumni,
-      pendingVerifications,
       eventsCount,
       jobsCount,
       mentorshipsCount
@@ -237,4 +218,4 @@ const resetAlumniPasswordToDob = async (req, res) => {
   }
 };
 
-module.exports = { getAllAlumni, verifyAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob };
+module.exports = { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob };

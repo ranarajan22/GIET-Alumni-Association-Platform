@@ -5,8 +5,24 @@ const JobOpening = require('../Models/JobOpening');
 const Message = require('../Models/message');
 const Conversation = require('../Models/conversation');
 
+const NETWORK_ALUMNI_FIELDS = [
+  '_id',
+  'fullName',
+  'graduationYear',
+  'collegeEmail',
+  'registrationNumber',
+  'course',
+  'branch',
+  'fieldOfStudy',
+  'profilePhoto',
+  'linkedin',
+  'github',
+  'verified',
+  'createdAt'
+].join(' ');
+
 function buildDirectoryFilter(query = {}) {
-  const filter = { verified: true };
+  const filter = {};
 
   if (query.batch) filter.graduationYear = Number(query.batch);
   if (query.course) filter.course = query.course;
@@ -29,7 +45,8 @@ function buildDirectoryFilter(query = {}) {
 const getAllAlumni = async (req, res) => {
   try {
     const filter = buildDirectoryFilter(req.query);
-    const alumni = await Alumni.find(filter).select('-password -degreeCertificate');
+    // Network directory should expose only required profile fields + social links.
+    const alumni = await Alumni.find(filter).select(NETWORK_ALUMNI_FIELDS);
     res.status(200).json({ alumni });
   } catch (error) {
     console.error('Error fetching alumni:', error);
@@ -40,10 +57,10 @@ const getAllAlumni = async (req, res) => {
 const getAlumniFacets = async (req, res) => {
   try {
     const [batchValues, courseValues, branchValues, fieldValues] = await Promise.all([
-      Alumni.distinct('graduationYear', { verified: true }),
-      Alumni.distinct('course', { verified: true }),
-      Alumni.distinct('branch', { verified: true }),
-      Alumni.distinct('fieldOfStudy', { verified: true })
+      Alumni.distinct('graduationYear', {}),
+      Alumni.distinct('course', {}),
+      Alumni.distinct('branch', {}),
+      Alumni.distinct('fieldOfStudy', {})
     ]);
 
     const mergedBranches = Array.from(new Set([...(branchValues || []), ...(fieldValues || [])]));
@@ -112,6 +129,7 @@ const getAlumniProfile = async (req, res) => {
         collegeEmail: alumni.collegeEmail,
         profilePhoto: alumni.profilePhoto,
         linkedin: alumni.linkedin,
+        github: alumni.github,
         verified: alumni.verified,
         course: alumni.course,
         usn: alumni.usn,

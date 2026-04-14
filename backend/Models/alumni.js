@@ -15,6 +15,9 @@ const alumniSchema = new Schema({
     dob: {
         type: Date,
     },
+    dateOfMarriage: {
+        type: Date,
+    },
     collegeEmail: {
         type: String,
         required: false,
@@ -58,6 +61,18 @@ const alumniSchema = new Schema({
         type: String,
         trim: true,
     },
+    currentCompany: {
+        type: String,
+        trim: true,
+    },
+    designation: {
+        type: String,
+        trim: true,
+    },
+    currentLocation: {
+        type: String,
+        trim: true,
+    },
     linkedin: {
         type: String,
         match: [/^https?:\/\/(www\.)?linkedin\.com\/.*$/, 'Please provide a valid LinkedIn profile URL'],
@@ -82,7 +97,7 @@ const alumniSchema = new Schema({
     },
     verified: {
         type: Boolean,
-        default: false, // Initially set to false when an alumni registers
+        default: true,
     },
     passwordResetRequired: {
         type: Boolean,
