@@ -47,7 +47,7 @@ const loginAlumni = async (req, res) => {
         }
 
         // Generate JWT token
-        const token = jwt.sign({ userId: alumni._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: alumni._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
         // Respond with token and alumni details
         res.status(200).json({

@@ -51,17 +51,21 @@ function Students() {
     }
   };
 
+  const normalizedSearchQuery = searchQuery.trim().toLowerCase();
+  const getStudentBranch = (student) => student.branch || student.fieldOfStudy || '';
+
   // Filter and sort logic
   const filteredStudents = useMemo(() => {
     let result = students.filter((s) => {
       const matchesSearch =
-        s.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.collegeEmail?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.usn?.toLowerCase().includes(searchQuery.toLowerCase());
+        !normalizedSearchQuery ||
+        s.fullName?.toLowerCase().includes(normalizedSearchQuery) ||
+        s.collegeEmail?.toLowerCase().includes(normalizedSearchQuery) ||
+        s.usn?.toLowerCase().includes(normalizedSearchQuery);
       const matchesCourse = !filterCourse || s.course === filterCourse;
-      const studentBranch = s.branch || s.fieldOfStudy;
+      const studentBranch = getStudentBranch(s);
       const matchesBranch = !filterBranch || studentBranch === filterBranch;
-      const matchesYear = !filterGradYear || s.graduationYear.toString() === filterGradYear;
+      const matchesYear = !filterGradYear || String(s.graduationYear) === filterGradYear;
       return matchesSearch && matchesCourse && matchesBranch && matchesYear;
     });
 
@@ -80,7 +84,59 @@ function Students() {
     });
 
     return result;
-  }, [students, searchQuery, filterCourse, filterBranch, filterGradYear, sortBy]);
+  }, [students, normalizedSearchQuery, filterCourse, filterBranch, filterGradYear, sortBy]);
+
+  const filterCounters = useMemo(() => {
+    const courseCounts = {};
+    const branchCounts = {};
+    const yearCounts = {};
+    let allCoursesCount = 0;
+    let allBranchesCount = 0;
+    let allYearsCount = 0;
+
+    students.forEach((student) => {
+      const studentBranch = getStudentBranch(student);
+      const yearKey = student.graduationYear ? String(student.graduationYear) : '';
+      const matchesSearch =
+        !normalizedSearchQuery ||
+        student.fullName?.toLowerCase().includes(normalizedSearchQuery) ||
+        student.collegeEmail?.toLowerCase().includes(normalizedSearchQuery) ||
+        student.usn?.toLowerCase().includes(normalizedSearchQuery);
+      const matchesCourse = !filterCourse || student.course === filterCourse;
+      const matchesBranch = !filterBranch || studentBranch === filterBranch;
+      const matchesYear = !filterGradYear || yearKey === filterGradYear;
+
+      if (matchesSearch && matchesBranch && matchesYear) {
+        allCoursesCount += 1;
+        if (student.course) {
+          courseCounts[student.course] = (courseCounts[student.course] || 0) + 1;
+        }
+      }
+
+      if (matchesSearch && matchesCourse && matchesYear) {
+        allBranchesCount += 1;
+        if (studentBranch) {
+          branchCounts[studentBranch] = (branchCounts[studentBranch] || 0) + 1;
+        }
+      }
+
+      if (matchesSearch && matchesCourse && matchesBranch) {
+        allYearsCount += 1;
+        if (yearKey) {
+          yearCounts[yearKey] = (yearCounts[yearKey] || 0) + 1;
+        }
+      }
+    });
+
+    return {
+      allCoursesCount,
+      allBranchesCount,
+      allYearsCount,
+      courseCounts,
+      branchCounts,
+      yearCounts
+    };
+  }, [students, normalizedSearchQuery, filterCourse, filterBranch, filterGradYear]);
 
   // Pagination
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -88,7 +144,7 @@ function Students() {
   const paginatedStudents = filteredStudents.slice(startIdx, startIdx + itemsPerPage);
 
   // Get unique values for filters
-  const gradYears = [...new Set(students.map((s) => s.graduationYear))].sort().reverse();
+  const gradYears = [...new Set(students.map((s) => s.graduationYear))].filter(Boolean).sort().reverse();
 
   const handleExportCSV = () => {
     const headers = ['Name', 'Email', 'USN', 'Course', 'Branch', 'Grad Year', 'Joined'];
@@ -170,10 +226,10 @@ function Students() {
           }}
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
         >
-          <option value="">All Courses</option>
+          <option value="">All Courses ({filterCounters.allCoursesCount})</option>
           {courseOptions.map((course) => (
             <option key={course.value} value={course.value}>
-              {course.label}
+              {course.label} ({filterCounters.courseCounts[course.value] || 0})
             </option>
           ))}
         </select>
@@ -186,10 +242,10 @@ function Students() {
           }}
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
         >
-          <option value="">All Years</option>
+          <option value="">All Years ({filterCounters.allYearsCount})</option>
           {gradYears.map((y) => (
             <option key={y} value={y}>
-              Class of {y}
+              Class of {y} ({filterCounters.yearCounts[String(y)] || 0})
             </option>
           ))}
         </select>
@@ -202,10 +258,10 @@ function Students() {
           }}
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
         >
-          <option value="">All Branches</option>
+          <option value="">All Branches ({filterCounters.allBranchesCount})</option>
           {branchOptions.map((branch) => (
             <option key={branch.value} value={branch.value}>
-              {branch.label}
+              {branch.label} ({filterCounters.branchCounts[branch.value] || 0})
             </option>
           ))}
         </select>

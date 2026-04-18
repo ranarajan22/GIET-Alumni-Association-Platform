@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X } from 'lucide-react';
+import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 const Alumni = ({ showAll = true }) => {
@@ -15,6 +15,9 @@ const Alumni = ({ showAll = true }) => {
   const [resetInfo, setResetInfo] = useState(null);
   const [visitInfo, setVisitInfo] = useState('');
   const [selectedAlumni, setSelectedAlumni] = useState(null);
+  const [sortBy, setSortBy] = useState('name');
+  const [viewMode, setViewMode] = useState('admin');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
   const apiBase = API_BASE_URL;
 
   const makeAbsoluteUrl = (value) => {
@@ -111,19 +114,80 @@ const Alumni = ({ showAll = true }) => {
     }
   }, [branchOptions, branchFilter]);
 
-  const filteredAlumni = alumniList.filter((alumni) => {
-    const branchValue = alumni.branch || alumni.fieldOfStudy;
-    const matchesSearch = !search ||
-      alumni.fullName?.toLowerCase().includes(search.toLowerCase()) ||
-      alumni.collegeEmail?.toLowerCase().includes(search.toLowerCase()) ||
-      alumni.registrationNumber?.toLowerCase().includes(search.toLowerCase());
-    const matchesBatch = !batchFilter || String(alumni.graduationYear) === batchFilter;
-    const matchesCourse = !courseFilter || alumni.course === courseFilter;
-    const matchesBranch = !branchFilter || branchValue === branchFilter;
-    return matchesSearch && matchesBatch && matchesCourse && matchesBranch;
-  });
+  const normalizedSearch = search.trim().toLowerCase();
+  const getAlumniBranch = (alumni) => alumni.branch || alumni.fieldOfStudy || '';
 
-  const batches = [...new Set(alumniList.map((a) => a.graduationYear))].filter(Boolean).sort((a, b) => a - b);
+  const filteredAlumni = useMemo(
+    () => alumniList.filter((alumni) => {
+      const branchValue = getAlumniBranch(alumni);
+      const matchesSearch = !normalizedSearch ||
+        alumni.fullName?.toLowerCase().includes(normalizedSearch) ||
+        alumni.collegeEmail?.toLowerCase().includes(normalizedSearch) ||
+        alumni.registrationNumber?.toLowerCase().includes(normalizedSearch);
+      const matchesBatch = !batchFilter || String(alumni.graduationYear) === batchFilter;
+      const matchesCourse = !courseFilter || alumni.course === courseFilter;
+      const matchesBranch = !branchFilter || branchValue === branchFilter;
+      return matchesSearch && matchesBatch && matchesCourse && matchesBranch;
+    }),
+    [alumniList, normalizedSearch, batchFilter, courseFilter, branchFilter]
+  );
+
+  const filterCounters = useMemo(() => {
+    const batchCounts = {};
+    const courseCounts = {};
+    const branchCounts = {};
+    let allBatchesCount = 0;
+    let allCoursesCount = 0;
+    let allBranchesCount = 0;
+
+    alumniList.forEach((alumni) => {
+      const branchValue = getAlumniBranch(alumni);
+      const batchKey = alumni.graduationYear ? String(alumni.graduationYear) : '';
+      const matchesSearch = !normalizedSearch ||
+        alumni.fullName?.toLowerCase().includes(normalizedSearch) ||
+        alumni.collegeEmail?.toLowerCase().includes(normalizedSearch) ||
+        alumni.registrationNumber?.toLowerCase().includes(normalizedSearch);
+      const matchesBatch = !batchFilter || batchKey === batchFilter;
+      const matchesCourse = !courseFilter || alumni.course === courseFilter;
+      const matchesBranch = !branchFilter || branchValue === branchFilter;
+
+      if (matchesSearch && matchesCourse && matchesBranch) {
+        allBatchesCount += 1;
+        if (batchKey) {
+          batchCounts[batchKey] = (batchCounts[batchKey] || 0) + 1;
+        }
+      }
+
+      if (matchesSearch && matchesBatch && matchesBranch) {
+        allCoursesCount += 1;
+        if (alumni.course) {
+          courseCounts[alumni.course] = (courseCounts[alumni.course] || 0) + 1;
+        }
+      }
+
+      if (matchesSearch && matchesBatch && matchesCourse) {
+        allBranchesCount += 1;
+        if (branchValue) {
+          branchCounts[branchValue] = (branchCounts[branchValue] || 0) + 1;
+        }
+      }
+    });
+
+    return {
+      allBatchesCount,
+      allCoursesCount,
+      allBranchesCount,
+      batchCounts,
+      courseCounts,
+      branchCounts
+    };
+  }, [alumniList, normalizedSearch, batchFilter, courseFilter, branchFilter]);
+
+  const batches = useMemo(
+    () => [...new Set(alumniList.map((a) => a.graduationYear))].filter(Boolean).sort((a, b) => a - b),
+    [alumniList]
+  );
+  const descendingBatches = useMemo(() => [...batches].sort((a, b) => b - a), [batches]);
 
   const handleResetPasswordToDob = async (id) => {
     try {
@@ -156,6 +220,43 @@ const Alumni = ({ showAll = true }) => {
     }
   };
 
+  const handleDeleteAlumni = async (id, fullName) => {
+    if (!window.confirm(`Are you sure you want to delete ${fullName}'s profile? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.delete(`${apiBase}/admin/alumni/${id}`, { headers });
+      setError(`✓ ${response.data?.message || 'Alumni profile deleted successfully'}`);
+      setDeleteConfirm(null);
+      setSelectedAlumni(null);
+      fetchAlumni();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to delete alumni profile');
+    }
+  };
+
+  const sortedAlumni = useMemo(() => {
+    const sorted = [...filteredAlumni];
+    sorted.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.fullName.localeCompare(b.fullName);
+        case 'batch':
+          return b.graduationYear - a.graduationYear;
+        case 'email':
+          return a.collegeEmail.localeCompare(b.collegeEmail);
+        case 'regNumber':
+          return (a.registrationNumber || '').localeCompare(b.registrationNumber || '');
+        default:
+          return 0;
+      }
+    });
+    return sorted;
+  }, [filteredAlumni, sortBy]);
+
   const skeletons = Array.from({ length: 3 });
 
   return (
@@ -164,7 +265,9 @@ const Alumni = ({ showAll = true }) => {
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Complete List</p>
           <h2 className="text-2xl font-bold text-white">All Alumni</h2>
-          <p className="text-sm text-slate-400">View all directly registered alumni profiles</p>
+          <p className="text-sm text-slate-400">
+            {alumniList.length} total • {filteredAlumni.length} matching current filters
+          </p>
         </div>
         <Shield className="w-6 h-6 text-cyan-400" />
       </div>
@@ -180,22 +283,52 @@ const Alumni = ({ showAll = true }) => {
           />
         </div>
         <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
-          <option value="">All Batches</option>
-          {batches.map((batch) => <option key={batch} value={batch}>{batch}</option>)}
+          <option value="">All Batches ({filterCounters.allBatchesCount})</option>
+          {batches.map((batch) => (
+            <option key={batch} value={batch}>{batch} ({filterCounters.batchCounts[String(batch)] || 0})</option>
+          ))}
         </select>
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
-          <option value="">All Courses</option>
+          <option value="">All Courses ({filterCounters.allCoursesCount})</option>
           {courseOptions.map((course) => (
-            <option key={course.value} value={course.value}>{course.label}</option>
+            <option key={course.value} value={course.value}>{course.label} ({filterCounters.courseCounts[course.value] || 0})</option>
           ))}
         </select>
         <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
-          <option value="">All Branches</option>
-          {branchOptions.map((branch) => <option key={branch.value} value={branch.value}>{branch.label}</option>)}
+          <option value="">All Branches ({filterCounters.allBranchesCount})</option>
+          {branchOptions.map((branch) => (
+            <option key={branch.value} value={branch.value}>{branch.label} ({filterCounters.branchCounts[branch.value] || 0})</option>
+          ))}
         </select>
       </div>
 
-      {resetInfo && (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 flex items-center gap-2">
+          <ArrowUpDown className="w-4 h-4 inline" />
+          <option value="name">Sort by Name</option>
+          <option value="batch">Sort by Batch (Newest)</option>
+          <option value="email">Sort by Email</option>
+          <option value="regNumber">Sort by Reg. Number</option>
+        </select>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setViewMode('admin')}
+            className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
+              viewMode === 'admin' ? 'bg-cyan-600 border border-cyan-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+            }`}
+          >
+            <Eye className="w-3 h-3" /> Admin View
+          </button>
+          <button
+            onClick={() => setViewMode('network')}
+            className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
+              viewMode === 'network' ? 'bg-purple-600 border border-purple-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+            }`}
+          >
+            <EyeOff className="w-3 h-3" /> Network View
+          </button>
+        </div>
+      </div>
         <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-sm">
           Temporary password reset for {resetInfo.fullName} ({resetInfo.registrationNumber}):
           <span className="font-bold ml-2">{resetInfo.temporaryPassword}</span>
@@ -213,15 +346,15 @@ const Alumni = ({ showAll = true }) => {
           onClick={() => setBatchFilter('')}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${!batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
         >
-          All Years
+          All Years ({filterCounters.allBatchesCount})
         </button>
-        {batches.sort((a, b) => b - a).map((year) => (
+        {descendingBatches.map((year) => (
           <button
             key={year}
             onClick={() => setBatchFilter(String(year))}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${String(year) === batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
           >
-            {year}
+            {year} ({filterCounters.batchCounts[String(year)] || 0})
           </button>
         ))}
       </div>
@@ -253,54 +386,99 @@ const Alumni = ({ showAll = true }) => {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredAlumni.map((alumni) => (
-            <div key={alumni._id} className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl shadow-lg">
-              <div className="flex items-center gap-3">
+          {sortedAlumni.map((alumni) => (
+            <div key={alumni._id} className={`p-4 rounded-xl shadow-lg border ${viewMode === 'network' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-900/60 border-slate-800'}`}>
+              <div className="flex items-start gap-3 mb-3">
                 <img
                   src={makeAbsoluteUrl(alumni.profilePhoto)}
                   alt={alumni.fullName}
-                  className="w-12 h-12 rounded-full object-cover border border-slate-700"
+                  className="w-12 h-12 rounded-full object-cover border border-slate-700 flex-shrink-0"
                 />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h3 className="font-bold text-sm text-white truncate">{alumni.fullName || 'NA'}</h3>
-                  <p className="text-xs text-slate-400 truncate">{alumni.registrationNumber || 'NA'}</p>
+                  {viewMode === 'admin' && <p className="text-xs text-slate-400 truncate">{alumni.registrationNumber || 'NA'}</p>}
                 </div>
               </div>
-              <div className="mt-3 text-xs text-slate-400">
-                <p>Year: <span className="text-slate-200">{alumni.graduationYear || 'NA'}</span></p>
-                <p>Course: <span className="text-slate-200">{getCourseLabel(alumni.course)}</span></p>
-                <p>Branch: <span className="text-slate-200">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
-              </div>
 
-              <div className="mt-3 grid grid-cols-1 gap-2">
-                <button
-                  onClick={() => setSelectedAlumni(alumni)}
-                  className="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
-                >
-                  <Eye className="w-3 h-3" />
-                  View Details
-                </button>
-              </div>
+              {viewMode === 'admin' ? (
+                <>
+                  <div className="mt-2 text-xs text-slate-400 space-y-1">
+                    <p>Year: <span className="text-slate-200">{alumni.graduationYear || 'NA'}</span></p>
+                    <p>Course: <span className="text-slate-200">{getCourseLabel(alumni.course)}</span></p>
+                    <p>Branch: <span className="text-slate-200">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
+                    <p>Email: <span className="text-slate-200 text-xs truncate">{alumni.collegeEmail || 'NA'}</span></p>
+                  </div>
 
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => handleResetPasswordToDob(alumni._id)}
-                  className="w-full px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white"
-                >
-                  Reset Password to DOB
-                </button>
-                <button
-                  onClick={() => handleAddVisitDate(alumni._id)}
-                  className="w-full px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
-                >
-                  <CalendarPlus className="w-3 h-3" />
-                  Add Visit Date
-                </button>
-              </div>
+                  <div className="mt-3 grid grid-cols-1 gap-2">
+                    <button
+                      onClick={() => setSelectedAlumni(alumni)}
+                      className="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
+                    >
+                      <Eye className="w-3 h-3" />
+                      View Details
+                    </button>
+                  </div>
 
-              <div className="mt-2 text-[11px] text-slate-500">
-                Last Visit: {formatDate((alumni.dateOfVisit || [])[alumni.dateOfVisit?.length - 1])}
-              </div>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => handleResetPasswordToDob(alumni._id)}
+                      className="px-2 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white"
+                      title="Reset password to DOB"
+                    >
+                      Reset
+                    </button>
+                    <button
+                      onClick={() => handleAddVisitDate(alumni._id)}
+                      className="px-2 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-semibold text-white inline-flex items-center justify-center"
+                      title="Add visit date"
+                    >
+                      <CalendarPlus className="w-3 h-3" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteAlumni(alumni._id, alumni.fullName)}
+                      className="px-2 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-xs font-semibold text-white inline-flex items-center justify-center"
+                      title="Delete alumni profile"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="mt-2 text-[11px] text-slate-500">
+                    Last Visit: {formatDate((alumni.dateOfVisit || [])[alumni.dateOfVisit?.length - 1])}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mt-2 text-xs text-slate-300 space-y-1">
+                    <p>Batch: <span className="text-slate-100 font-semibold">{alumni.graduationYear || 'NA'}</span></p>
+                    <p>Course: <span className="text-slate-100">{getCourseLabel(alumni.course)}</span></p>
+                    <p>Branch: <span className="text-slate-100">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-slate-700">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {alumni.linkedin && (
+                        <a href={alumni.linkedin} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline">
+                          LinkedIn
+                        </a>
+                      )}
+                      {alumni.github && (
+                        <a href={alumni.github} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline">
+                          GitHub
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedAlumni(alumni)}
+                    className="w-full mt-3 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
+                  >
+                    <Eye className="w-3 h-3" />
+                    View Profile
+                  </button>
+                </>
+              )}
             </div>
           ))}
         </div>
