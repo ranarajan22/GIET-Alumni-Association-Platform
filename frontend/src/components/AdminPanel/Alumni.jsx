@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown } from 'lucide-react';
+import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown, Rows3, Columns3 } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
-const Alumni = ({ showAll = true }) => {
+const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [alumniList, setAlumni] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,6 +17,7 @@ const Alumni = ({ showAll = true }) => {
   const [selectedAlumni, setSelectedAlumni] = useState(null);
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState('admin');
+  const [layoutMode, setLayoutMode] = useState('vertical');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const apiBase = API_BASE_URL;
 
@@ -260,16 +261,16 @@ const Alumni = ({ showAll = true }) => {
   const skeletons = Array.from({ length: 3 });
 
   return (
-    <section className="space-y-4">
+    <section className={theme === 'dark' ? 'space-y-4' : 'space-y-4 text-slate-900'}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Complete List</p>
-          <h2 className="text-2xl font-bold text-white">All Alumni</h2>
-          <p className="text-sm text-slate-400">
+          <h2 className={theme === 'dark' ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>All Alumni</h2>
+          <p className={theme === 'dark' ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
             {alumniList.length} total • {filteredAlumni.length} matching current filters
           </p>
         </div>
-        <Shield className="w-6 h-6 text-cyan-400" />
+        <Shield className={theme === 'dark' ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600'} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -310,6 +311,24 @@ const Alumni = ({ showAll = true }) => {
           <option value="email">Sort by Email</option>
           <option value="regNumber">Sort by Reg. Number</option>
         </select>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setLayoutMode('vertical')}
+            className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
+              layoutMode === 'vertical' ? 'bg-emerald-600 border border-emerald-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+            }`}
+          >
+            <Rows3 className="w-3 h-3" /> Vertical
+          </button>
+          <button
+            onClick={() => setLayoutMode('horizontal')}
+            className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
+              layoutMode === 'horizontal' ? 'bg-emerald-600 border border-emerald-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+            }`}
+          >
+            <Columns3 className="w-3 h-3" /> Horizontal
+          </button>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={() => setViewMode('admin')}
@@ -387,31 +406,34 @@ const Alumni = ({ showAll = true }) => {
           No alumni found for selected filters.
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className={layoutMode === 'horizontal' ? 'space-y-3' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}>
           {sortedAlumni.map((alumni) => (
-            <div key={alumni._id} className={`p-4 rounded-xl shadow-lg border ${viewMode === 'network' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-900/60 border-slate-800'}`}>
-              <div className="flex items-start gap-3 mb-3">
+            <div
+              key={alumni._id}
+              className={`p-4 rounded-xl shadow-lg border ${viewMode === 'network' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-900/60 border-slate-800'} ${layoutMode === 'horizontal' ? 'flex flex-col md:flex-row md:items-start md:justify-between md:gap-4' : ''}`}
+            >
+              <div className={`flex items-start gap-3 mb-3 ${layoutMode === 'horizontal' ? 'md:mb-0 md:flex-1' : ''}`}>
                 <img
                   src={makeAbsoluteUrl(alumni.profilePhoto)}
                   alt={alumni.fullName}
                   className="w-12 h-12 rounded-full object-cover border border-slate-700 flex-shrink-0"
                 />
-                <div className="min-w-0 flex-1">
+                <div className={`min-w-0 flex-1 ${layoutMode === 'horizontal' ? 'md:max-w-xs' : ''}`}>
                   <h3 className="font-bold text-sm text-white truncate">{alumni.fullName || 'NA'}</h3>
                   {viewMode === 'admin' && <p className="text-xs text-slate-400 truncate">{alumni.registrationNumber || 'NA'}</p>}
                 </div>
               </div>
 
               {viewMode === 'admin' ? (
-                <>
-                  <div className="mt-2 text-xs text-slate-400 space-y-1">
+                <div className={layoutMode === 'horizontal' ? 'md:flex md:items-center md:gap-6 md:flex-1' : ''}>
+                  <div className={`mt-2 text-xs text-slate-400 space-y-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[220px]' : ''}`}>
                     <p>Year: <span className="text-slate-200">{alumni.graduationYear || 'NA'}</span></p>
                     <p>Course: <span className="text-slate-200">{getCourseLabel(alumni.course)}</span></p>
                     <p>Branch: <span className="text-slate-200">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
                     <p>Email: <span className="text-slate-200 text-xs truncate">{alumni.collegeEmail || 'NA'}</span></p>
                   </div>
 
-                  <div className="mt-3 grid grid-cols-1 gap-2">
+                  <div className={`mt-3 grid grid-cols-1 gap-2 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[170px]' : ''}`}>
                     <button
                       onClick={() => setSelectedAlumni(alumni)}
                       className="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
@@ -421,7 +443,7 @@ const Alumni = ({ showAll = true }) => {
                     </button>
                   </div>
 
-                  <div className="mt-2 grid grid-cols-3 gap-2">
+                  <div className={`mt-2 grid grid-cols-3 gap-2 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[180px]' : ''}`}>
                     <button
                       onClick={() => handleResetPasswordToDob(alumni._id)}
                       className="px-2 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white"
@@ -445,19 +467,19 @@ const Alumni = ({ showAll = true }) => {
                     </button>
                   </div>
 
-                  <div className="mt-2 text-[11px] text-slate-500">
+                  <div className={`mt-2 text-[11px] text-slate-500 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[140px]' : ''}`}>
                     Last Visit: {formatDate((alumni.dateOfVisit || [])[alumni.dateOfVisit?.length - 1])}
                   </div>
-                </>
+                </div>
               ) : (
-                <>
-                  <div className="mt-2 text-xs text-slate-300 space-y-1">
+                <div className={layoutMode === 'horizontal' ? 'md:flex md:items-center md:gap-6 md:flex-1' : ''}>
+                  <div className={`mt-2 text-xs text-slate-300 space-y-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[220px]' : ''}`}>
                     <p>Batch: <span className="text-slate-100 font-semibold">{alumni.graduationYear || 'NA'}</span></p>
                     <p>Course: <span className="text-slate-100">{getCourseLabel(alumni.course)}</span></p>
                     <p>Branch: <span className="text-slate-100">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-slate-700">
+                  <div className={`mt-3 pt-3 border-t border-slate-700 ${layoutMode === 'horizontal' ? 'md:mt-0 md:pt-0 md:border-t-0 md:min-w-[160px]' : ''}`}>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {alumni.linkedin && (
                         <a href={alumni.linkedin} target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 hover:underline">
@@ -474,12 +496,12 @@ const Alumni = ({ showAll = true }) => {
 
                   <button
                     onClick={() => setSelectedAlumni(alumni)}
-                    className="w-full mt-3 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
+                    className={`w-full mt-3 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:w-auto md:min-w-[150px]' : ''}`}
                   >
                     <Eye className="w-3 h-3" />
                     View Profile
                   </button>
-                </>
+                </div>
               )}
             </div>
           ))}

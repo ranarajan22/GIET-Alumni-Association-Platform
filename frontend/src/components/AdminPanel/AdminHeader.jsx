@@ -1,9 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Menu } from 'lucide-react';
+import { LogOut, Menu, Sun, Moon } from 'lucide-react';
 import { assets } from '../../assets/assets';
 
-function AdminHeader({ onMenuClick }) {
+function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
   const navigate = useNavigate();
   const loggedInUser = localStorage.getItem('loggedInUser') || 'Admin';
   const storedPhoto = localStorage.getItem('profilePhoto');
@@ -41,6 +41,15 @@ function AdminHeader({ onMenuClick }) {
 
       {/* Right Side - User Info & Logout */}
       <div className="flex items-center gap-4">
+        <button
+          onClick={onToggleTheme}
+          className="flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-700 text-slate-100 rounded-lg transition border border-slate-600"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <span className="hidden sm:inline text-xs font-semibold">{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>
+        </button>
+
         {/* User Info */}
         <div className="flex items-center gap-3 pr-4 border-r border-slate-700">
           <img

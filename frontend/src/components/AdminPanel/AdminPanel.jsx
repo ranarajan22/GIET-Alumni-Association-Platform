@@ -18,6 +18,7 @@ import { assets } from '../../assets/assets';
 function AdminPanel() {
     const [currentView, setCurrentView] = useState('all');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [theme, setTheme] = useState(() => localStorage.getItem('adminTheme') || 'dark');
     const [stats, setStats] = useState({
         totalStudents: 0,
         totalAlumni: 0,
@@ -39,6 +40,14 @@ function AdminPanel() {
         }, 30000);
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        localStorage.setItem('adminTheme', theme);
+    }, [theme]);
+
+    const toggleTheme = () => {
+        setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    };
 
     const fetchMetrics = async () => {
         try {
@@ -76,9 +85,13 @@ function AdminPanel() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
+        <div className={theme === 'dark' ? 'min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white' : 'min-h-screen bg-gradient-to-br from-slate-100 via-white to-slate-100 text-slate-900'}>
             {/* Admin Header */}
-            <AdminHeader onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+            <AdminHeader
+                onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                theme={theme}
+                onToggleTheme={toggleTheme}
+            />
 
             <div className="flex pt-20">
                 {/* Mobile Overlay */}
@@ -219,18 +232,18 @@ function AdminPanel() {
                             {/* Lists Section */}
                             <div className="space-y-6 lg:space-y-8">
                                 <Students />
-                                <Alumni />
+                                <Alumni theme={theme} />
                             </div>
                         </>
                     )}
                     {currentView === 'students' && <Students />}
-                    {currentView === 'alumni' && <Alumni />}
+                    {currentView === 'alumni' && <Alumni theme={theme} />}
                     {currentView === 'import' && (
                         <AdminViewErrorBoundary onReset={() => setCurrentView('all')}>
                             <BulkAlumniImport />
                         </AdminViewErrorBoundary>
                     )}
-                    {currentView === 'all-alumni' && <Alumni showAll={true} />}
+                    {currentView === 'all-alumni' && <Alumni showAll={true} theme={theme} />}
                     {currentView === 'messages' && <ContactMessages />}
                     {currentView === 'subscribers' && <SubscribersList />}
                     {currentView === 'events' && <AdminPosts view="events" />}
