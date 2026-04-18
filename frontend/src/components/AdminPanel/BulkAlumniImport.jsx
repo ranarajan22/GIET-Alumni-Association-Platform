@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 function BulkAlumniImport() {
   const [file, setFile] = useState(null);
@@ -32,6 +33,15 @@ function BulkAlumniImport() {
   useEffect(() => {
     fetchHistory();
   }, []);
+
+  const courseGroups = useMemo(() => getAllCourseOptions(), []);
+  const branchOptions = useMemo(() => getBranchOptions(defaultCourse), [defaultCourse]);
+
+  useEffect(() => {
+    if (branchOptions.length && !branchOptions.some((branch) => branch.value === defaultBranch)) {
+      setDefaultBranch(branchOptions[0].value);
+    }
+  }, [branchOptions, defaultBranch]);
 
   const buildFormData = () => {
     const formData = new FormData();
@@ -79,6 +89,9 @@ function BulkAlumniImport() {
   };
 
   const downloadTemplate = (mode = 'required') => {
+    const selectedCourseLabel = getCourseLabel(defaultCourse);
+    const selectedBranchLabel = getBranchLabel(defaultCourse, defaultBranch);
+
     const requiredHeaders = [
       'Roll No',
       'Name of the Alumni',
@@ -113,9 +126,9 @@ function BulkAlumniImport() {
     const requiredSample = [
       '22CSE001',
       'Sample Alumni',
-      'CSE',
+      defaultBranch,
       '2022',
-      'BTECH',
+      defaultCourse,
       '15/08/2000',
       '22cse001@giet.edu'
     ];
@@ -221,24 +234,27 @@ function BulkAlumniImport() {
         />
 
         <select
-          value={defaultBranch}
-          onChange={(e) => setDefaultBranch(e.target.value)}
-          className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+          value={defaultCourse}
+          onChange={(e) => setDefaultCourse(e.target.value)}
+          className="md:col-span-2 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
         >
-          {['CSE', 'ECE', 'EE', 'MECH', 'CIVIL', 'IT', 'MBA', 'MCA', 'MTECH', 'OTHER'].map((branch) => (
-            <option key={branch} value={branch}>{branch}</option>
+          {courseGroups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.courses.map((course) => (
+                <option key={course.value} value={course.value}>{course.label}</option>
+              ))}
+            </optgroup>
           ))}
         </select>
 
         <select
-          value={defaultCourse}
-          onChange={(e) => setDefaultCourse(e.target.value)}
+          value={defaultBranch}
+          onChange={(e) => setDefaultBranch(e.target.value)}
           className="md:col-span-4 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
         >
-          <option value="BTECH">BTECH</option>
-          <option value="MTECH">MTECH</option>
-          <option value="MBA">MBA</option>
-          <option value="MCA">MCA</option>
+          {branchOptions.map((branch) => (
+            <option key={branch.value} value={branch.value}>{branch.label}</option>
+          ))}
         </select>
       </div>
 
@@ -270,6 +286,12 @@ function BulkAlumniImport() {
           <Upload className="w-4 h-4" />
           {loading ? 'Processing...' : 'Commit Import'}
         </button>
+      </div>
+
+      <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 text-sm text-slate-300">
+        <p className="font-semibold text-white">Selected import defaults</p>
+        <p className="mt-1">Course: {selectedCourseLabel}</p>
+        <p>Branch: {selectedBranchLabel}</p>
       </div>
 
       {error && (

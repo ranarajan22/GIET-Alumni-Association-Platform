@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Users, AlertTriangle, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 function Students() {
   const [students, setStudents] = useState([]);
@@ -14,10 +15,18 @@ function Students() {
   const [sortBy, setSortBy] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const courseGroups = useMemo(() => getAllCourseOptions(), []);
+  const branchOptions = useMemo(() => getBranchOptions(filterCourse), [filterCourse]);
 
   useEffect(() => {
     fetchStudents();
   }, []);
+
+  useEffect(() => {
+    if (filterBranch && !branchOptions.some((branch) => branch.value === filterBranch)) {
+      setFilterBranch('');
+    }
+  }, [branchOptions, filterBranch]);
 
   const fetchStudents = async () => {
     try {
@@ -76,17 +85,16 @@ function Students() {
   const paginatedStudents = filteredStudents.slice(startIdx, startIdx + itemsPerPage);
 
   // Get unique values for filters
-  const courses = [...new Set(students.map((s) => s.course))].filter(Boolean).sort();
-  const branches = [...new Set(students.map((s) => s.branch || s.fieldOfStudy))].filter(Boolean).sort();
   const gradYears = [...new Set(students.map((s) => s.graduationYear))].sort().reverse();
 
   const handleExportCSV = () => {
-    const headers = ['Name', 'Email', 'USN', 'Course', 'Grad Year', 'Joined'];
+    const headers = ['Name', 'Email', 'USN', 'Course', 'Branch', 'Grad Year', 'Joined'];
     const rows = filteredStudents.map((s) => [
       s.fullName,
       s.collegeEmail,
       s.usn,
-      s.course,
+      getCourseLabel(s.course),
+      getBranchLabel(s.course, s.branch || s.fieldOfStudy),
       s.graduationYear,
       new Date(s.createdAt).toLocaleDateString()
     ]);
@@ -160,10 +168,14 @@ function Students() {
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
         >
           <option value="">All Courses</option>
-          {courses.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+          {courseGroups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.courses.map((course) => (
+                <option key={course.value} value={course.value}>
+                  {course.label}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </select>
 
@@ -192,9 +204,9 @@ function Students() {
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
         >
           <option value="">All Branches</option>
-          {branches.map((b) => (
-            <option key={b} value={b}>
-              {b}
+          {branchOptions.map((branch) => (
+            <option key={branch.value} value={branch.value}>
+              {branch.label}
             </option>
           ))}
         </select>
@@ -249,8 +261,8 @@ function Students() {
                       <td className="px-4 py-3 font-semibold text-slate-100">{s.fullName}</td>
                       <td className="px-4 py-3 text-slate-300 text-xs sm:text-sm">{s.collegeEmail}</td>
                       <td className="px-4 py-3 text-slate-400">{s.usn}</td>
-                      <td className="px-4 py-3">{s.course}</td>
-                      <td className="px-4 py-3">{s.branch || s.fieldOfStudy || '—'}</td>
+                      <td className="px-4 py-3">{getCourseLabel(s.course)}</td>
+                      <td className="px-4 py-3">{getBranchLabel(s.course, s.branch || s.fieldOfStudy)}</td>
                       <td className="px-4 py-3">{s.graduationYear}</td>
                       <td className="px-4 py-3 text-slate-400 text-xs">
                         {new Date(s.createdAt).toLocaleDateString()}

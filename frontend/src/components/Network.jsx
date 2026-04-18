@@ -3,6 +3,7 @@ import axios from 'axios';
 import { User, MessageSquare, Mail, BookOpen, Briefcase, Link as LinkIcon, Github, Award, Code } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AlumniCard from './AlumniCard';
+import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../constants/courseCatalog';
 
 const Network = ({ onChatClick, userRole = null }) => {
   const [alumni, setAlumni] = useState([]);
@@ -19,6 +20,8 @@ const Network = ({ onChatClick, userRole = null }) => {
   // Determine role from prop or localStorage
   const role = userRole || localStorage.getItem("userRole");
   const isAlumni = role === 'alumni';
+  const courseGroups = getAllCourseOptions();
+  const branchOptions = getBranchOptions(selectedCourse);
 
   const handleChatClick = (person) => {
     // Call the parent's onChatClick callback
@@ -34,6 +37,12 @@ const Network = ({ onChatClick, userRole = null }) => {
   const closeProfileModal = () => {
     setSelectedProfile(null);
   };
+
+  useEffect(() => {
+    if (selectedBranch && !branchOptions.some((branch) => branch.value === selectedBranch)) {
+      setSelectedBranch('');
+    }
+  }, [branchOptions, selectedBranch]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -130,8 +139,12 @@ const Network = ({ onChatClick, userRole = null }) => {
             className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg"
           >
             <option value="">All Courses</option>
-            {facets.courses?.map((course) => (
-              <option key={course} value={course}>{course}</option>
+            {courseGroups.map((group) => (
+              <optgroup key={group.label} label={group.label}>
+                {group.courses.map((course) => (
+                  <option key={course.value} value={course.value}>{course.label}</option>
+                ))}
+              </optgroup>
             ))}
           </select>
           <select
@@ -140,8 +153,8 @@ const Network = ({ onChatClick, userRole = null }) => {
             className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg"
           >
             <option value="">All Branches</option>
-            {facets.branches?.map((branch) => (
-              <option key={branch} value={branch}>{branch}</option>
+            {branchOptions.map((branch) => (
+              <option key={branch.value} value={branch.value}>{branch.label}</option>
             ))}
           </select>
         </div>
@@ -283,7 +296,7 @@ const Network = ({ onChatClick, userRole = null }) => {
                           <Award className="w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5" />
                           <div>
                             <p className="text-xs text-gray-600 dark:text-slate-400">Course</p>
-                            <p className="text-gray-800 dark:text-white">{selectedProfile.course}</p>
+                            <p className="text-gray-800 dark:text-white">{getCourseLabel(selectedProfile.course)}</p>
                           </div>
                         </div>
                       ) : (
@@ -296,7 +309,7 @@ const Network = ({ onChatClick, userRole = null }) => {
                           <Briefcase className="w-5 h-5 text-indigo-600 dark:text-indigo-400 mt-0.5" />
                           <div>
                             <p className="text-xs text-gray-600 dark:text-slate-400">Branch/Field</p>
-                            <p className="text-gray-800 dark:text-white">{selectedProfile.fieldOfStudy}</p>
+                            <p className="text-gray-800 dark:text-white">{getBranchLabel(selectedProfile.course, selectedProfile.branch || selectedProfile.fieldOfStudy)}</p>
                           </div>
                         </div>
                       ) : (

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Shield, AlertTriangle, Search, CalendarPlus } from 'lucide-react';
+import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X } from 'lucide-react';
+import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 const Alumni = ({ showAll = true }) => {
   const [alumniList, setAlumni] = useState([]);
@@ -13,6 +14,7 @@ const Alumni = ({ showAll = true }) => {
   const [branchFilter, setBranchFilter] = useState('');
   const [resetInfo, setResetInfo] = useState(null);
   const [visitInfo, setVisitInfo] = useState('');
+  const [selectedAlumni, setSelectedAlumni] = useState(null);
   const apiBase = API_BASE_URL;
 
   const makeAbsoluteUrl = (value) => {
@@ -27,6 +29,41 @@ const Alumni = ({ showAll = true }) => {
     const parsed = new Date(value);
     if (Number.isNaN(parsed.getTime())) return String(value);
     return parsed.toLocaleDateString();
+  };
+
+  const courseGroups = useMemo(() => getAllCourseOptions(), []);
+  const branchOptions = useMemo(() => getBranchOptions(courseFilter), [courseFilter]);
+
+  const formatValue = (key, value, alumni) => {
+    if (Array.isArray(value)) {
+      return value.length ? value.map((entry) => formatDate(entry)).join(', ') : '—';
+    }
+
+    if (key === 'course') {
+      return getCourseLabel(value);
+    }
+
+    if (key === 'branch') {
+      return getBranchLabel(alumni.course, value || alumni.fieldOfStudy);
+    }
+
+    if (key === 'dob' || key === 'dateOfMarriage' || key === 'createdAt' || key === 'updatedAt') {
+      return formatDate(value);
+    }
+
+    if (key === 'verified' || key === 'passwordResetRequired') {
+      return value ? 'Yes' : 'No';
+    }
+
+    if (value === null || value === undefined || value === '') {
+      return '—';
+    }
+
+    if (typeof value === 'object') {
+      return JSON.stringify(value, null, 2);
+    }
+
+    return String(value);
   };
 
   // Fetch the alumni data
@@ -65,6 +102,12 @@ const Alumni = ({ showAll = true }) => {
     fetchAlumni();
   }, [showAll]);
 
+  useEffect(() => {
+    if (branchFilter && !branchOptions.some((branch) => branch.value === branchFilter)) {
+      setBranchFilter('');
+    }
+  }, [branchOptions, branchFilter]);
+
   const filteredAlumni = alumniList.filter((alumni) => {
     const branchValue = alumni.branch || alumni.fieldOfStudy;
     const matchesSearch = !search ||
@@ -78,8 +121,6 @@ const Alumni = ({ showAll = true }) => {
   });
 
   const batches = [...new Set(alumniList.map((a) => a.graduationYear))].filter(Boolean).sort((a, b) => a - b);
-  const courses = [...new Set(alumniList.map((a) => a.course))].filter(Boolean).sort();
-  const branches = [...new Set(alumniList.map((a) => a.branch || a.fieldOfStudy))].filter(Boolean).sort();
 
   const handleResetPasswordToDob = async (id) => {
     try {
@@ -141,11 +182,17 @@ const Alumni = ({ showAll = true }) => {
         </select>
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
           <option value="">All Courses</option>
-          {courses.map((course) => <option key={course} value={course}>{course}</option>)}
+          {courseGroups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.courses.map((course) => (
+                <option key={course.value} value={course.value}>{course.label}</option>
+              ))}
+            </optgroup>
+          ))}
         </select>
         <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
           <option value="">All Branches</option>
-          {branches.map((branch) => <option key={branch} value={branch}>{branch}</option>)}
+          {branchOptions.map((branch) => <option key={branch.value} value={branch.value}>{branch.label}</option>)}
         </select>
       </div>
 
@@ -222,10 +269,21 @@ const Alumni = ({ showAll = true }) => {
               </div>
               <div className="mt-3 text-xs text-slate-400">
                 <p>Year: <span className="text-slate-200">{alumni.graduationYear || 'NA'}</span></p>
-                <p>Course: <span className="text-slate-200">{alumni.course || 'NA'}</span></p>
+                <p>Course: <span className="text-slate-200">{getCourseLabel(alumni.course)}</span></p>
+                <p>Branch: <span className="text-slate-200">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => setSelectedAlumni(alumni)}
+                  className="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
+                >
+                  <Eye className="w-3 h-3" />
+                  View Details
+                </button>
+              </div>
+
+              <div className="mt-2 grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleResetPasswordToDob(alumni._id)}
                   className="w-full px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white"
@@ -246,6 +304,130 @@ const Alumni = ({ showAll = true }) => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {selectedAlumni && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+          <div className="w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
+            <div className="flex items-start justify-between gap-4 border-b border-slate-800 bg-slate-900 px-6 py-5">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Alumni Details</p>
+                <h3 className="text-2xl font-bold text-white">{selectedAlumni.fullName || 'NA'}</h3>
+                <p className="text-sm text-slate-400">Registration No: {selectedAlumni.registrationNumber || selectedAlumni.usn || 'NA'}</p>
+              </div>
+              <button
+                onClick={() => setSelectedAlumni(null)}
+                className="rounded-full border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 hover:text-white"
+                aria-label="Close details"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="max-h-[calc(90vh-88px)] overflow-y-auto p-6 space-y-6">
+              <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+                  <img
+                    src={makeAbsoluteUrl(selectedAlumni.profilePhoto)}
+                    alt={selectedAlumni.fullName}
+                    className="h-56 w-full rounded-xl object-cover border border-slate-800"
+                  />
+                  <div className="mt-4 space-y-2 text-sm text-slate-300">
+                    <p><span className="text-slate-500">Course:</span> {getCourseLabel(selectedAlumni.course)}</p>
+                    <p><span className="text-slate-500">Branch:</span> {getBranchLabel(selectedAlumni.course, selectedAlumni.branch || selectedAlumni.fieldOfStudy)}</p>
+                    <p><span className="text-slate-500">Batch:</span> {selectedAlumni.graduationYear || 'NA'}</p>
+                    <p><span className="text-slate-500">Import:</span> {selectedAlumni.importSource || 'Manual / legacy'}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  {[
+                    {
+                      title: 'Core Profile',
+                      fields: [
+                        ['fullName', 'Full Name'],
+                        ['registrationNumber', 'Registration Number'],
+                        ['usn', 'USN'],
+                        ['graduationYear', 'Graduation Year'],
+                        ['course', 'Course'],
+                        ['branch', 'Branch'],
+                        ['fieldOfStudy', 'Field of Study'],
+                        ['gender', 'Gender'],
+                        ['dob', 'Date of Birth'],
+                        ['dateOfMarriage', 'Date of Marriage'],
+                        ['religion', 'Religion'],
+                        ['verified', 'Verified'],
+                        ['passwordResetRequired', 'Password Reset Required']
+                      ]
+                    },
+                    {
+                      title: 'Contact & Family',
+                      fields: [
+                        ['collegeEmail', 'College Email'],
+                        ['personalEmail', 'Personal Email'],
+                        ['mobile', 'Mobile'],
+                        ['parentsMobile', 'Parents Mobile'],
+                        ['fatherName', 'Father Name'],
+                        ['motherName', 'Mother Name'],
+                        ['permanentAddress', 'Permanent Address']
+                      ]
+                    },
+                    {
+                      title: 'Career & Links',
+                      fields: [
+                        ['currentCompany', 'Current Company'],
+                        ['designation', 'Designation'],
+                        ['currentLocation', 'Current Location'],
+                        ['higherStudy', 'Higher Study'],
+                        ['linkedin', 'LinkedIn'],
+                        ['github', 'GitHub'],
+                        ['degreeCertificate', 'Degree Certificate'],
+                        ['degreeCertificateImage', 'Degree Certificate Image'],
+                        ['profilePhoto', 'Profile Photo']
+                      ]
+                    },
+                    {
+                      title: 'Tracking',
+                      fields: [
+                        ['dateOfVisit', 'Date Of Visit'],
+                        ['createdAt', 'Created At'],
+                        ['updatedAt', 'Updated At']
+                      ]
+                    }
+                  ].map((section) => (
+                    <div key={section.title} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                      <h4 className="mb-4 text-lg font-semibold text-white">{section.title}</h4>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        {section.fields.map(([key, label]) => (
+                          <div key={key} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
+                            <p className="mt-2 break-words text-sm text-slate-100">{formatValue(key, selectedAlumni[key], selectedAlumni)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+                    <h4 className="mb-4 text-lg font-semibold text-white">All Stored Fields</h4>
+                    <div className="grid gap-3 md:grid-cols-2">
+                      {Object.entries(selectedAlumni)
+                        .filter(([key]) => key !== 'password' && key !== '__v')
+                        .map(([key, value]) => (
+                          <div key={key} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{key}</p>
+                            <p className="mt-2 break-words text-sm text-slate-100">
+                              {formatValue(key, value, selectedAlumni)}
+                            </p>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </section>
