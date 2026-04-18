@@ -4,6 +4,36 @@ import { API_BASE_URL } from '../../config';
 import { Users, AlertTriangle, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
+const STUDENTS_CACHE_KEY = 'admin_students_cache_v1';
+const STUDENTS_CACHE_TTL = 5 * 60 * 1000;
+
+const readStudentsCache = () => {
+  try {
+    const raw = sessionStorage.getItem(STUDENTS_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.timestamp || !Array.isArray(parsed?.data)) return null;
+    if (Date.now() - parsed.timestamp > STUDENTS_CACHE_TTL) return null;
+    return parsed.data;
+  } catch {
+    return null;
+  }
+};
+
+const writeStudentsCache = (data) => {
+  try {
+    sessionStorage.setItem(
+      STUDENTS_CACHE_KEY,
+      JSON.stringify({
+        timestamp: Date.now(),
+        data
+      })
+    );
+  } catch {
+    // Ignore cache write failures and continue with in-memory data.
+  }
+};
+
 function Students({ theme = 'dark' }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,6 +52,14 @@ function Students({ theme = 'dark' }) {
   );
 
   useEffect(() => {
+    const cachedStudents = readStudentsCache();
+    if (cachedStudents) {
+      setStudents(cachedStudents);
+      setLoading(false);
+      fetchStudents({ silent: true });
+      return;
+    }
+
     fetchStudents();
   }, []);
 
@@ -31,15 +69,20 @@ function Students({ theme = 'dark' }) {
     }
   }, [branchOptions, filterBranch]);
 
-  const fetchStudents = async () => {
+  const fetchStudents = async ({ silent = false } = {}) => {
     try {
+      if (!silent) {
+        setLoading(true);
+      }
       const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       console.log('Fetching students from:', `${base}/admin/students`, 'with token:', !!token);
       const res = await axios.get(`${base}/admin/students`, { headers });
       console.log('Students response:', res.data);
-      setStudents(res.data?.students || []);
+      const nextStudents = res.data?.students || [];
+      setStudents(nextStudents);
+      writeStudentsCache(nextStudents);
       setError('');
       setCurrentPage(1);
     } catch (err) {
@@ -47,7 +90,9 @@ function Students({ theme = 'dark' }) {
       setError(`Failed to fetch students: ${err.response?.data?.message || err.message}`);
       setStudents([]);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
@@ -188,8 +233,8 @@ function Students({ theme = 'dark' }) {
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
           <button
-            onClick={fetchStudents}
-            className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm font-semibold text-white"
+            onClick={() => fetchStudents()}
+            className={isDark ? 'px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm font-semibold text-white' : 'px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-sm font-semibold text-slate-800'}
           >
             Refresh
           </button>

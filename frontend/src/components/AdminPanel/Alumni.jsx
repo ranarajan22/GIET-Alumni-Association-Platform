@@ -4,6 +4,36 @@ import { API_BASE_URL } from '../../config';
 import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown, Rows3, Columns3 } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
+const ALUMNI_CACHE_KEY = 'admin_alumni_cache_v1';
+const ALUMNI_CACHE_TTL = 5 * 60 * 1000;
+
+const readAlumniCache = () => {
+  try {
+    const raw = sessionStorage.getItem(ALUMNI_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed?.timestamp || !Array.isArray(parsed?.data)) return null;
+    if (Date.now() - parsed.timestamp > ALUMNI_CACHE_TTL) return null;
+    return parsed.data;
+  } catch {
+    return null;
+  }
+};
+
+const writeAlumniCache = (data) => {
+  try {
+    sessionStorage.setItem(
+      ALUMNI_CACHE_KEY,
+      JSON.stringify({
+        timestamp: Date.now(),
+        data
+      })
+    );
+  } catch {
+    // Ignore cache write failures and continue with in-memory data.
+  }
+};
+
 const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [alumniList, setAlumni] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,8 +104,11 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
   };
 
   // Fetch the alumni data
-  const fetchAlumni = async () => {
+  const fetchAlumni = async ({ silent = false } = {}) => {
     try {
+      if (!silent) {
+        setLoading(true);
+      }
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       console.log('Fetching alumni from:', `${apiBase}/admin/alumni`, 'with token:', !!token);
@@ -89,23 +122,36 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       
       // If alumniData is an array, always show full admin list
       if (alumniData.length > 0) {
-        setAlumni(alumniData.filter(Boolean));
+        const nextAlumni = alumniData.filter(Boolean);
+        setAlumni(nextAlumni);
+        writeAlumniCache(nextAlumni);
       } else {
         console.log('No alumni found');
         setAlumni([]);
+        writeAlumniCache([]);
       }
       
       setError('');
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching alumni:', error.message, error.response?.data || error);
       setError(`Unable to fetch alumni: ${error.response?.data?.message || error.message}`);
       setAlumni([]);
-      setLoading(false);
+    } finally {
+      if (!silent) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
+    const cachedAlumni = readAlumniCache();
+    if (cachedAlumni) {
+      setAlumni(cachedAlumni);
+      setLoading(false);
+      fetchAlumni({ silent: true });
+      return;
+    }
+
     fetchAlumni();
   }, [showAll]);
 
