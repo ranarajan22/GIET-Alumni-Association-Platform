@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 function BulkAlumniImport() {
@@ -15,6 +15,7 @@ function BulkAlumniImport() {
   const [error, setError] = useState('');
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const fetchHistory = async () => {
     try {
@@ -66,6 +67,7 @@ function BulkAlumniImport() {
     setLoading(true);
     setError('');
     setResult(null);
+    setSuccessMessage(null);
 
     try {
       const token = localStorage.getItem('token');
@@ -79,6 +81,15 @@ function BulkAlumniImport() {
       if (mode === 'preview') setPreview(response.data);
       if (mode === 'commit') {
         setResult(response.data);
+        setSuccessMessage({
+          fileName: file.name,
+          timestamp: new Date().toLocaleString(),
+          imported: response.data.imported,
+          errorCount: response.data.errorCount,
+          summary: response.data.summary
+        });
+        // Auto-dismiss after 8 seconds
+        setTimeout(() => setSuccessMessage(null), 8000);
       }
       await fetchHistory();
     } catch (err) {
@@ -364,6 +375,40 @@ function BulkAlumniImport() {
             Refresh
           </button>
         </div>
+
+        {successMessage && (
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/50 text-emerald-100 animate-pulse">
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-400" />
+              <p className="font-bold text-base">✓ Import Successful!</p>
+            </div>
+            <div className="grid sm:grid-cols-4 gap-3 text-sm mb-2">
+              <div>
+                <p className="text-emerald-300/70 text-xs">File</p>
+                <p className="font-semibold text-emerald-100">{successMessage.fileName}</p>
+              </div>
+              <div>
+                <p className="text-emerald-300/70 text-xs">Inserted</p>
+                <p className="font-bold text-lg text-emerald-300">{successMessage.imported?.inserted || 0}</p>
+              </div>
+              <div>
+                <p className="text-emerald-300/70 text-xs">Updated</p>
+                <p className="font-bold text-lg text-emerald-300">{successMessage.imported?.updated || 0}</p>
+              </div>
+              <div>
+                <p className="text-emerald-300/70 text-xs">Time</p>
+                <p className="font-semibold text-emerald-100 text-xs">{successMessage.timestamp}</p>
+              </div>
+            </div>
+            {successMessage.errorCount > 0 && (
+              <div className="pt-2 border-t border-emerald-500/30 text-amber-300 text-sm flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                <span>{successMessage.errorCount} error(s) detected - check "Export Failed Rows" below</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {historyLoading ? (
           <p className="text-sm text-slate-400">Loading history...</p>
         ) : history.length === 0 ? (
