@@ -88,7 +88,7 @@ const Alumni = ({ showAll = true }) => {
       
       // If alumniData is an array, always show full admin list
       if (alumniData.length > 0) {
-        setAlumni(alumniData);
+        setAlumni(alumniData.filter(Boolean));
       } else {
         console.log('No alumni found');
         setAlumni([]);
@@ -329,6 +329,8 @@ const Alumni = ({ showAll = true }) => {
           </button>
         </div>
       </div>
+
+      {resetInfo && (
         <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-sm">
           Temporary password reset for {resetInfo.fullName} ({resetInfo.registrationNumber}):
           <span className="font-bold ml-2">{resetInfo.temporaryPassword}</span>
