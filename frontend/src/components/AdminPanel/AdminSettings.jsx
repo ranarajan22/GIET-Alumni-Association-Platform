@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../../config';
 import { Settings, Bell, Lock, Database, LogOut, AlertTriangle, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { assets } from '../../assets/assets';
 
-function AdminSettings() {
+function AdminSettings({ theme = 'dark' }) {
   const [settings, setSettings] = useState({
     appName: 'Alumni Connect',
     maintenanceMode: false,
@@ -41,6 +41,7 @@ function AdminSettings() {
     ? cleanedPhoto
     : assets.Profile;
   const loggedInUser = localStorage.getItem('loggedInUser');
+  const isDark = theme === 'dark';
 
   // Fetch maintenance status on component mount
   useEffect(() => {
@@ -193,15 +194,15 @@ function AdminSettings() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={isDark ? 'space-y-6' : 'space-y-6 text-slate-900'}>
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
-        <Settings className="w-8 h-8 text-cyan-400" />
-        <h1 className="text-3xl font-bold text-white">Admin Settings</h1>
+        <Settings className={isDark ? 'w-8 h-8 text-cyan-400' : 'w-8 h-8 text-cyan-600'} />
+        <h1 className={isDark ? 'text-3xl font-bold text-white' : 'text-3xl font-bold text-slate-900'}>Admin Settings</h1>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-slate-700">
+      <div className={isDark ? 'flex gap-2 mb-6 border-b border-slate-700' : 'flex gap-2 mb-6 border-b border-slate-300'}>
         {['general', 'security', 'notifications', 'logs'].map((tab) => (
           <button
             key={tab}
@@ -209,7 +210,7 @@ function AdminSettings() {
             className={`px-4 py-3 text-sm font-semibold capitalize border-b-2 transition ${
               activeTab === tab
                 ? 'border-cyan-500 text-cyan-400'
-                : 'border-transparent text-slate-400 hover:text-slate-200'
+                : isDark ? 'border-transparent text-slate-400 hover:text-slate-200' : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
             {tab}
@@ -228,8 +229,8 @@ function AdminSettings() {
       {/* General Settings */}
       {activeTab === 'general' && (
         <div className="space-y-6">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
-            <h2 className="text-xl font-bold text-white mb-6">General Settings</h2>
+          <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
+            <h2 className={isDark ? 'text-xl font-bold text-white mb-6' : 'text-xl font-bold text-slate-900 mb-6'}>General Settings</h2>
 
             <div className="space-y-4">
               <div>
@@ -283,10 +284,10 @@ function AdminSettings() {
       {/* Security Settings */}
       {activeTab === 'security' && (
         <div className="space-y-6">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+          <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
             <div className="flex items-center gap-3 mb-6">
               <Lock className="w-6 h-6 text-cyan-400" />
-              <h2 className="text-xl font-bold text-white">Security Settings</h2>
+              <h2 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>Security Settings</h2>
             </div>
 
             <div className="space-y-4">
@@ -409,10 +410,10 @@ function AdminSettings() {
       {/* Notifications */}
       {activeTab === 'notifications' && (
         <div className="space-y-6">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+          <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
             <div className="flex items-center gap-3 mb-6">
               <Bell className="w-6 h-6 text-cyan-400" />
-              <h2 className="text-xl font-bold text-white">Notification Settings</h2>
+              <h2 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>Notification Settings</h2>
             </div>
 
             <div className="space-y-4">
@@ -450,10 +451,10 @@ function AdminSettings() {
       {/* Logs & Activity */}
       {activeTab === 'logs' && (
         <div className="space-y-6">
-          <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+          <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
             <div className="flex items-center gap-3 mb-6">
               <Database className="w-6 h-6 text-cyan-400" />
-              <h2 className="text-xl font-bold text-white">Activity Logs</h2>
+              <h2 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>Activity Logs</h2>
             </div>
 
             <div className="space-y-2">

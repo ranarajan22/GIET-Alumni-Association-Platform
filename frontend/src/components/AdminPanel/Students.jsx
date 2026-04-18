@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../../config';
 import { Users, AlertTriangle, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
-function Students() {
+function Students({ theme = 'dark' }) {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -173,15 +173,16 @@ function Students() {
   };
 
   const total = students.length;
+  const isDark = theme === 'dark';
 
   return (
-    <section className="bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl backdrop-blur p-6 space-y-4">
+    <section className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl shadow-xl backdrop-blur p-6 space-y-4' : 'bg-white border border-slate-200 rounded-2xl shadow-xl backdrop-blur p-6 space-y-4'}>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Roster</p>
-          <h2 className="text-2xl font-bold text-white">Students</h2>
-          <p className="text-sm text-slate-400">
+          <p className={isDark ? 'text-xs uppercase tracking-[0.3em] text-slate-500' : 'text-xs uppercase tracking-[0.3em] text-slate-600'}>Roster</p>
+          <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>Students</h2>
+          <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
             {total} total • Showing {paginatedStudents.length} of {filteredStudents.length} results
           </p>
         </div>
@@ -281,7 +282,7 @@ function Students() {
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-12 bg-slate-800 rounded-lg animate-pulse" />
+            <div key={i} className={isDark ? 'h-12 bg-slate-800 rounded-lg animate-pulse' : 'h-12 bg-slate-100 rounded-lg animate-pulse'} />
           ))}
         </div>
       ) : error ? (
@@ -290,16 +291,16 @@ function Students() {
           {error}
         </div>
       ) : filteredStudents.length === 0 ? (
-        <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-slate-300">
-          <Users className="w-8 h-8 mx-auto text-slate-500 mb-2" />
+        <div className={isDark ? 'p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-slate-300' : 'p-6 bg-slate-50 border border-slate-200 rounded-2xl text-center text-slate-700'}>
+          <Users className={isDark ? 'w-8 h-8 mx-auto text-slate-500 mb-2' : 'w-8 h-8 mx-auto text-slate-500 mb-2'} />
           No students found matching your criteria.
         </div>
       ) : (
         <>
-          <div className="overflow-hidden rounded-xl border border-slate-800">
+          <div className={isDark ? 'overflow-hidden rounded-xl border border-slate-800' : 'overflow-hidden rounded-xl border border-slate-200'}>
             <div className="overflow-x-auto">
-              <table className="min-w-full text-sm text-left text-slate-200">
-                <thead className="bg-slate-800 text-xs uppercase tracking-wide text-slate-400">
+              <table className={isDark ? 'min-w-full text-sm text-left text-slate-200' : 'min-w-full text-sm text-left text-slate-800'}>
+                <thead className={isDark ? 'bg-slate-800 text-xs uppercase tracking-wide text-slate-400' : 'bg-slate-100 text-xs uppercase tracking-wide text-slate-600'}>
                   <tr>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Email</th>
@@ -310,16 +311,16 @@ function Students() {
                     <th className="px-4 py-3">Joined</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className={isDark ? 'divide-y divide-slate-800' : 'divide-y divide-slate-200'}>
                   {paginatedStudents.map((s) => (
-                    <tr key={s._id} className="hover:bg-slate-800/60 transition-colors">
-                      <td className="px-4 py-3 font-semibold text-slate-100">{s.fullName}</td>
-                      <td className="px-4 py-3 text-slate-300 text-xs sm:text-sm">{s.collegeEmail}</td>
-                      <td className="px-4 py-3 text-slate-400">{s.usn}</td>
+                    <tr key={s._id} className={isDark ? 'hover:bg-slate-800/60 transition-colors' : 'hover:bg-slate-50 transition-colors'}>
+                      <td className={isDark ? 'px-4 py-3 font-semibold text-slate-100' : 'px-4 py-3 font-semibold text-slate-900'}>{s.fullName}</td>
+                      <td className={isDark ? 'px-4 py-3 text-slate-300 text-xs sm:text-sm' : 'px-4 py-3 text-slate-700 text-xs sm:text-sm'}>{s.collegeEmail}</td>
+                      <td className={isDark ? 'px-4 py-3 text-slate-400' : 'px-4 py-3 text-slate-600'}>{s.usn}</td>
                       <td className="px-4 py-3">{getCourseLabel(s.course)}</td>
                       <td className="px-4 py-3">{getBranchLabel(s.course, s.branch || s.fieldOfStudy)}</td>
                       <td className="px-4 py-3">{s.graduationYear}</td>
-                      <td className="px-4 py-3 text-slate-400 text-xs">
+                      <td className={isDark ? 'px-4 py-3 text-slate-400 text-xs' : 'px-4 py-3 text-slate-600 text-xs'}>
                         {new Date(s.createdAt).toLocaleDateString()}
                       </td>
                     </tr>

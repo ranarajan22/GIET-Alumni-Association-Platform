@@ -231,12 +231,12 @@ function AdminPanel() {
 
                             {/* Lists Section */}
                             <div className="space-y-6 lg:space-y-8">
-                                <Students />
+                                <Students theme={theme} />
                                 <Alumni theme={theme} />
                             </div>
                         </>
                     )}
-                    {currentView === 'students' && <Students />}
+                    {currentView === 'students' && <Students theme={theme} />}
                     {currentView === 'alumni' && <Alumni theme={theme} />}
                     {currentView === 'import' && (
                         <AdminViewErrorBoundary onReset={() => setCurrentView('all')}>
@@ -246,10 +246,10 @@ function AdminPanel() {
                     {currentView === 'all-alumni' && <Alumni showAll={true} theme={theme} />}
                     {currentView === 'messages' && <ContactMessages />}
                     {currentView === 'subscribers' && <SubscribersList />}
-                    {currentView === 'events' && <AdminPosts view="events" />}
-                    {currentView === 'jobs' && <AdminPosts view="jobs" />}
-                    {currentView === 'mentorships' && <AdminPosts view="mentorships" />}
-                    {currentView === 'settings' && <AdminSettings />}
+                    {currentView === 'events' && <AdminPosts view="events" theme={theme} />}
+                    {currentView === 'jobs' && <AdminPosts view="jobs" theme={theme} />}
+                    {currentView === 'mentorships' && <AdminPosts view="mentorships" theme={theme} />}
+                    {currentView === 'settings' && <AdminSettings theme={theme} />}
                     {currentView === 'analytics' && <AdvancedMetrics stats={stats} />}
                 </div>
             </main>

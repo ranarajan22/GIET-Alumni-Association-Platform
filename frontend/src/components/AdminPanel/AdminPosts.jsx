@@ -24,12 +24,13 @@ const sections = {
   }
 };
 
-const AdminPosts = ({ view }) => {
+const AdminPosts = ({ view, theme = 'dark' }) => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const config = sections[view];
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     let mounted = true;
@@ -70,11 +71,11 @@ const AdminPosts = ({ view }) => {
   if (!config) return null;
 
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+    <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
       <div className="flex items-center gap-3 mb-4">
-        {React.createElement(config.icon, { className: 'w-6 h-6 text-cyan-400' })}
-        <h2 className="text-2xl font-bold text-white">{config.title}</h2>
-        <span className="ml-auto text-sm text-slate-400">{items.length} items</span>
+        {React.createElement(config.icon, { className: isDark ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600' })}
+        <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>{config.title}</h2>
+        <span className={isDark ? 'ml-auto text-sm text-slate-400' : 'ml-auto text-sm text-slate-600'}>{items.length} items</span>
       </div>
 
       {error && (
@@ -82,20 +83,20 @@ const AdminPosts = ({ view }) => {
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-slate-300"><Loader className="w-4 h-4 animate-spin" /> Loading...</div>
+        <div className={isDark ? 'flex items-center gap-2 text-slate-300' : 'flex items-center gap-2 text-slate-600'}><Loader className="w-4 h-4 animate-spin" /> Loading...</div>
       ) : items.length === 0 ? (
-        <p className="text-slate-400">No items found.</p>
+        <p className={isDark ? 'text-slate-400' : 'text-slate-600'}>No items found.</p>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {items.map((item) => (
-            <div key={item._id} className="bg-slate-800/60 border border-slate-700 rounded-xl p-4 space-y-3">
+            <div key={item._id} className={isDark ? 'bg-slate-800/60 border border-slate-700 rounded-xl p-4 space-y-3' : 'bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3'}>
               <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-white break-words">{item.title || item.name}</h3>
-                  {item.company && <p className="text-sm text-slate-400">{item.company}</p>}
-                  {item.description && <p className="text-sm text-slate-400 line-clamp-3">{item.description}</p>}
-                  {item.date && <p className="text-xs text-slate-500">Date: {new Date(item.date).toLocaleDateString()}</p>}
-                  {item.postedAt && <p className="text-xs text-slate-500">Posted: {new Date(item.postedAt).toLocaleDateString()}</p>}
+                  <h3 className={isDark ? 'text-lg font-semibold text-white break-words' : 'text-lg font-semibold text-slate-900 break-words'}>{item.title || item.name}</h3>
+                  {item.company && <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-700'}>{item.company}</p>}
+                  {item.description && <p className={isDark ? 'text-sm text-slate-400 line-clamp-3' : 'text-sm text-slate-700 line-clamp-3'}>{item.description}</p>}
+                  {item.date && <p className={isDark ? 'text-xs text-slate-500' : 'text-xs text-slate-600'}>Date: {new Date(item.date).toLocaleDateString()}</p>}
+                  {item.postedAt && <p className={isDark ? 'text-xs text-slate-500' : 'text-xs text-slate-600'}>Posted: {new Date(item.postedAt).toLocaleDateString()}</p>}
                   {item.isClosed && <span className="inline-block mt-2 px-2 py-1 text-xs rounded bg-red-500/20 text-red-300">Closed</span>}
                 </div>
               </div>
@@ -131,4 +132,5 @@ export default AdminPosts;
 
 AdminPosts.propTypes = {
   view: PropTypes.string.isRequired,
+  theme: PropTypes.string,
 };

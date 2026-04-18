@@ -5,6 +5,7 @@ import { assets } from '../../assets/assets';
 
 function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
   const navigate = useNavigate();
+  const isDark = theme === 'dark';
   const loggedInUser = localStorage.getItem('loggedInUser') || 'Admin';
   const storedPhoto = localStorage.getItem('profilePhoto');
   const cleanedPhoto = storedPhoto?.trim();
@@ -18,14 +19,16 @@ function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
   };
 
   return (
-    <div className="fixed top-0 left-0 w-full bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 backdrop-blur-md z-50 flex items-center justify-between px-4 md:px-6 py-3 border-b border-slate-700 shadow-lg">
+    <div className={isDark
+      ? 'fixed top-0 left-0 w-full bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 backdrop-blur-md z-50 flex items-center justify-between px-4 md:px-6 py-3 border-b border-slate-700 shadow-lg'
+      : 'fixed top-0 left-0 w-full bg-gradient-to-r from-white via-slate-100 to-white backdrop-blur-md z-50 flex items-center justify-between px-4 md:px-6 py-3 border-b border-slate-200 shadow-lg'}>
       {/* Left Side - Logo & Title */}
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="md:hidden p-2 hover:bg-slate-800 rounded-lg transition"
+          className={isDark ? 'md:hidden p-2 hover:bg-slate-800 rounded-lg transition' : 'md:hidden p-2 hover:bg-slate-200 rounded-lg transition'}
         >
-          <Menu className="w-6 h-6 text-white" />
+          <Menu className={isDark ? 'w-6 h-6 text-white' : 'w-6 h-6 text-slate-900'} />
         </button>
         <img
           src={assets.Logo}
@@ -34,8 +37,8 @@ function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
           onClick={() => navigate('/admin')}
         />
         <div>
-          <h1 className="text-2xl font-bold text-white">Admin Portal</h1>
-          <p className="text-xs text-slate-400">Management Dashboard</p>
+          <h1 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>Admin Portal</h1>
+          <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Management Dashboard</p>
         </div>
       </div>
 
@@ -43,7 +46,9 @@ function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
       <div className="flex items-center gap-4">
         <button
           onClick={onToggleTheme}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-700 text-slate-100 rounded-lg transition border border-slate-600"
+          className={isDark
+            ? 'flex items-center gap-2 px-3 py-2 bg-slate-800/70 hover:bg-slate-700 text-slate-100 rounded-lg transition border border-slate-600'
+            : 'flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg transition border border-slate-300'}
           title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
         >
           {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -51,7 +56,7 @@ function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
         </button>
 
         {/* User Info */}
-        <div className="flex items-center gap-3 pr-4 border-r border-slate-700">
+        <div className={isDark ? 'flex items-center gap-3 pr-4 border-r border-slate-700' : 'flex items-center gap-3 pr-4 border-r border-slate-300'}>
           <img
             src={profilePhoto}
             alt={loggedInUser}
@@ -64,8 +69,8 @@ function AdminHeader({ onMenuClick, theme = 'dark', onToggleTheme }) {
             }}
           />
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold text-white">{loggedInUser}</p>
-            <p className="text-xs text-slate-400">Administrator</p>
+            <p className={isDark ? 'text-sm font-semibold text-white' : 'text-sm font-semibold text-slate-900'}>{loggedInUser}</p>
+            <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Administrator</p>
           </div>
         </div>
 
