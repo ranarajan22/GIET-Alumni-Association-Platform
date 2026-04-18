@@ -104,10 +104,13 @@ function inferHeaderRow(rows) {
 
 function findColumnIndexes(headerRow) {
   const indexes = {};
-  const normalizedHeaders = headerRow.map((h) => normalizeText(h).toLowerCase());
+  // ExcelJS row arrays can be sparse when header cells are blank;
+  // Array.from ensures every position becomes a concrete value.
+  const normalizedHeaders = Array.from(headerRow || [], (cell) => normalizeText(cell).toLowerCase());
 
   Object.entries(HEADER_PATTERNS).forEach(([target, patterns]) => {
-    const idx = normalizedHeaders.findIndex((header) => patterns.some((p) => header.includes(p)));
+    const safePatterns = (patterns || []).filter(Boolean);
+    const idx = normalizedHeaders.findIndex((header) => safePatterns.some((pattern) => header.includes(pattern)));
     if (idx >= 0) indexes[target] = idx;
   });
 
