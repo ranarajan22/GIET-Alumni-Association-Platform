@@ -65,6 +65,11 @@ function BulkAlumniImport({ theme = 'dark' }) {
       return;
     }
 
+    if (!String(file.name || '').toLowerCase().endsWith('.xlsx')) {
+      setError('Only .xlsx files are supported. Please save your sheet as .xlsx and upload again.');
+      return;
+    }
+
     setLoading(true);
     setError('');
     setResult(null);
@@ -241,7 +246,7 @@ function BulkAlumniImport({ theme = 'dark' }) {
           </div>
           <input
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx"
             className="hidden"
             onChange={(e) => setFile(e.target.files?.[0] || null)}
           />

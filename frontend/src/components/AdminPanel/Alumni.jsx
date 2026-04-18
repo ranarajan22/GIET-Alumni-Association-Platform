@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown, Rows3, Columns3 } from 'lucide-react';
+import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown, Rows3, Columns3, RefreshCw } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 const ALUMNI_CACHE_KEY = 'admin_alumni_cache_v1';
@@ -317,7 +317,16 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
             {alumniList.length} total • {filteredAlumni.length} matching current filters
           </p>
         </div>
-        <Shield className={isDark ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600'} />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fetchAlumni()}
+            className={isDark ? 'px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center gap-1.5' : 'px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5'}
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Refresh
+          </button>
+          <Shield className={isDark ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600'} />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">

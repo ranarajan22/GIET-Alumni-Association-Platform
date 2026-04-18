@@ -34,23 +34,39 @@ const BRANCH_ALIASES = {
   PCPR: 'PCPR'
 };
 
+const COURSE_ALIASES = {
+  BTECH: 'BTECH',
+  'B.TECH': 'BTECH',
+  BE: 'BTECH',
+  BACHELOR OF TECHNOLOGY: 'BTECH',
+  MTECH: 'MTECH',
+  'M.TECH': 'MTECH',
+  MBA: 'MBA',
+  MCA: 'MCA',
+  DIPLOMA: 'DIPLOMA'
+};
+
 const HEADER_PATTERNS = {
   rollNo: [
     'roll',
+    'roll no',
     'regd',
+    'regd no',
     'registration',
+    'registration no',
     'reg no',
+    'reg. no',
     'usn',
     'university registration number',
     'university regd no',
     'university reg no'
   ],
-  fullName: ['name of the alumni', 'name', 'student name', 'full name'],
-  branch: ['branch', 'department', 'dept'],
-  batch: ['batch pass out', 'batch', 'graduation year', 'pass out'],
-  course: ['course', 'program', 'programme', 'degree'],
+  fullName: ['name of the alumni', 'name of alumni', 'name', 'student name', 'full name'],
+  branch: ['branch', 'branch name', 'department', 'dept'],
+  batch: ['batch pass out', 'batch passout', 'batch', 'graduation year', 'pass out', 'passout year'],
+  course: ['course', 'course name', 'program', 'programme', 'degree'],
   dob: ['d o b', 'dob', 'date of birth', 'birth'],
-  collegeEmail: ['email id', 'college email', 'email'],
+  collegeEmail: ['email id', 'email address', 'college email', 'email'],
   mobile: ['mobile', 'phone', 'contact'],
   gender: ['gender', 'sex', 'm f'],
   dateOfMarriage: ['date of marriage', 'marriage date', 'dom'],
@@ -69,9 +85,67 @@ const HEADER_PATTERNS = {
   github: ['github', 'github url']
 };
 
-function normalizeText(value) {
+function normalizeCellValue(value) {
   if (value === null || value === undefined) return '';
-  return String(value).replace(/\s+/g, ' ').trim();
+
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value === 'object') {
+    if (value.result !== undefined && value.result !== null) {
+      return normalizeCellValue(value.result);
+    }
+
+    if (Array.isArray(value.richText)) {
+      return value.richText.map((entry) => entry?.text || '').join('');
+    }
+
+    if (typeof value.text === 'string') {
+      return value.text;
+    }
+
+    if (typeof value.hyperlink === 'string') {
+      return value.hyperlink;
+    }
+
+    return '';
+  }
+
+  return value;
+}
+
+function normalizeText(value) {
+  const normalized = normalizeCellValue(value);
+  if (normalized === null || normalized === undefined) return '';
+  if (normalized instanceof Date) return normalized.toISOString();
+  return String(normalized).replace(/\s+/g, ' ').trim();
+}
+
+function normalizeIdentifier(value) {
+  return normalizeText(value).toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '');
+}
+
+function normalizeCourse(rawCourse) {
+  const normalized = normalizeText(rawCourse).toUpperCase();
+  return COURSE_ALIASES[normalized] || normalized;
+}
+
+function normalizePhone(value) {
+  return normalizeText(value).replace(/[^\d+]/g, '');
+}
+
+function normalizeEmail(value) {
+  const email = normalizeText(value).toLowerCase();
+  return email && email.includes('@') ? email : '';
+}
+
+function normalizeUrl(value) {
+  const raw = normalizeText(value);
+  if (!raw) return '';
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.includes('.')) return `https://${raw}`;
+  return raw;
 }
 
 function normalizeBranch(rawBranch) {
@@ -178,8 +252,8 @@ function yearFromFileName(name) {
 }
 
 function buildEmail(rollNo, providedEmail) {
-  const email = normalizeText(providedEmail).toLowerCase();
-  if (email && email.includes('@')) return email;
+  const email = normalizeEmail(providedEmail);
+  if (email) return email;
   return `${normalizeText(rollNo).toLowerCase()}@alumni.giet.edu`;
 }
 
@@ -259,20 +333,30 @@ async function upsertYearCollections(records, sourceFile) {
 async function parseWorkbook(fileInput, fileName, options = {}) {
   const workbook = new ExcelJS.Workbook();
 
-  // Support both memory uploads (Buffer) and disk uploads (file path)
-  if (Buffer.isBuffer(fileInput)) {
-    await workbook.xlsx.load(fileInput);
-  } else {
-    await workbook.xlsx.readFile(fileInput);
+  try {
+    // Support both memory uploads (Buffer) and disk uploads (file path)
+    if (Buffer.isBuffer(fileInput)) {
+      await workbook.xlsx.load(fileInput);
+    } else {
+      await workbook.xlsx.readFile(fileInput);
+    }
+  } catch (error) {
+    const parseError = new Error('Unable to read Excel file. Please upload a valid .xlsx file generated from the provided template.');
+    parseError.statusCode = 400;
+    parseError.cause = error;
+    throw parseError;
   }
+
   const sheet = workbook.worksheets[0];
+  if (!sheet) {
+    return { records: [], errors: [{ row: 0, rollNo: '', reason: 'Workbook does not contain any worksheet.' }] };
+  }
+
   const rows = [];
 
-  if (sheet) {
-    sheet.eachRow({ includeEmpty: true }, (row) => {
-      rows.push(row.values.slice(1));
-    });
-  }
+  sheet.eachRow({ includeEmpty: true }, (row) => {
+    rows.push(row.values.slice(1).map((cell) => normalizeCellValue(cell)));
+  });
 
   if (!rows.length) {
     return { records: [], errors: [{ row: 0, reason: 'Sheet is empty' }] };
@@ -281,6 +365,23 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
   const headerRowIdx = inferHeaderRow(rows.slice(0, 15));
   const headerRow = rows[headerRowIdx] || [];
   const columns = findColumnIndexes(headerRow);
+  const missingRequiredColumns = ['rollNo', 'fullName'].filter((field) => columns[field] === undefined);
+
+  if (missingRequiredColumns.length) {
+    const fieldLabelMap = {
+      rollNo: 'University Registration Number / Roll No',
+      fullName: 'Name of the Alumni'
+    };
+
+    return {
+      records: [],
+      errors: [{
+        row: headerRowIdx + 1,
+        rollNo: '',
+        reason: `Missing required header columns: ${missingRequiredColumns.map((field) => fieldLabelMap[field] || field).join(', ')}`
+      }]
+    };
+  }
 
   const batchFromFile = yearFromFileName(fileName);
   const defaultCourse = normalizeText(options.defaultCourse || 'BTECH').toUpperCase();
@@ -296,31 +397,29 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
     const batchText = getCell(row, columns.batch);
     const batch = Number(batchText) || Number(options.defaultBatch) || batchFromFile || new Date().getFullYear();
 
-    const rollNoRaw = getCell(row, columns.rollNo).toUpperCase();
-    const rollNo = rollNoRaw;
+    const rollNo = normalizeIdentifier(getCell(row, columns.rollNo));
     const fullName = normalizeText(getCell(row, columns.fullName));
     const branchRaw = getCell(row, columns.branch) || options.defaultBranch || '';
     const branch = normalizeBranch(branchRaw || '');
-    const course = normalizeText(getCell(row, columns.course) || options.course || defaultCourse).toUpperCase();
+    const course = normalizeCourse(getCell(row, columns.course) || options.defaultCourse || options.course || defaultCourse);
     const dob = parseExcelDate(row[columns.dob], date1904);
     const tempPassword = toTempPassword(dob) || fallbackTempPassword(rollNo);
     const collegeEmail = buildEmail(rollNo, getCell(row, columns.collegeEmail));
-    const mobile = normalizeText(getCell(row, columns.mobile));
+    const mobile = normalizePhone(getCell(row, columns.mobile));
     const gender = normalizeText(getCell(row, columns.gender));
     const dateOfMarriage = parseExcelDate(row[columns.dateOfMarriage], date1904);
     const currentCompany = normalizeText(getCell(row, columns.currentCompany));
     const designation = normalizeText(getCell(row, columns.designation));
     const currentLocation = normalizeText(getCell(row, columns.currentLocation));
-    const parentsMobile = normalizeText(getCell(row, columns.parentsMobile));
-    const personalEmailRaw = normalizeText(getCell(row, columns.personalEmail));
-    const personalEmail = personalEmailRaw && personalEmailRaw.includes('@') ? personalEmailRaw.toLowerCase() : '';
+    const parentsMobile = normalizePhone(getCell(row, columns.parentsMobile));
+    const personalEmail = normalizeEmail(getCell(row, columns.personalEmail));
     const fatherName = normalizeText(getCell(row, columns.fatherName));
     const motherName = normalizeText(getCell(row, columns.motherName));
     const religion = normalizeText(getCell(row, columns.religion));
     const higherStudy = normalizeText(getCell(row, columns.higherStudy));
     const permanentAddress = normalizeText(getCell(row, columns.permanentAddress));
-    const linkedin = normalizeText(getCell(row, columns.linkedin));
-    const github = normalizeText(getCell(row, columns.github));
+    const linkedin = normalizeUrl(getCell(row, columns.linkedin));
+    const github = normalizeUrl(getCell(row, columns.github));
 
     // Date of visit is admin-managed only; import initializes as empty list.
     const dateOfVisit = [];
@@ -445,6 +544,28 @@ const importAlumniFromExcel = async (req, res) => {
     });
 
     const summary = summarizeRecords(records);
+
+    if (mode === 'commit' && records.length === 0) {
+      await ImportJob.create({
+        fileName: file.originalname,
+        mode,
+        status: 'failed',
+        uploadedBy: req.user?._id,
+        uploadedByName: req.user?.fullName || 'Admin',
+        summary,
+        errorCount: errors.length || 1,
+        rowErrors: (errors.length ? errors : [{ row: 0, rollNo: '', reason: 'No valid records found to import.' }]).slice(0, 50),
+        errorMessage: 'No valid records found to import.'
+      });
+
+      return res.status(400).json({
+        success: false,
+        message: 'No valid records found to import. Please correct the sheet and preview again.',
+        summary,
+        errorCount: errors.length,
+        errors: errors.slice(0, 200)
+      });
+    }
 
     if (mode === 'preview') {
       await ImportJob.create({
@@ -606,9 +727,9 @@ const importAlumniFromExcel = async (req, res) => {
       console.error('Failed to persist import failure log:', logError.message);
     }
 
-    return res.status(500).json({
+    return res.status(error?.statusCode || 500).json({
       success: false,
-      message: 'Bulk alumni import failed',
+      message: error?.statusCode ? error.message : 'Bulk alumni import failed',
       error: error.message
     });
   } finally {

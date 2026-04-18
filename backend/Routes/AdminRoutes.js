@@ -11,10 +11,10 @@ const importUpload = multer({
 	limits: { fileSize: 10 * 1024 * 1024 },
 	fileFilter: (req, file, cb) => {
 		const lower = (file.originalname || '').toLowerCase();
-		if (lower.endsWith('.xlsx') || lower.endsWith('.xls')) {
+		if (lower.endsWith('.xlsx')) {
 			return cb(null, true);
 		}
-		return cb(new Error('Only .xlsx or .xls files are allowed'));
+		return cb(new Error('Only .xlsx files are supported. Please re-save old .xls files as .xlsx and upload again.'));
 	}
 });
 
