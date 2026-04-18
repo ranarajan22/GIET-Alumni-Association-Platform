@@ -3,7 +3,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { BarChart3, TrendingUp, Users, CheckCircle, AlertCircle } from 'lucide-react';
 
-function AdvancedMetrics({ stats }) {
+function AdvancedMetrics({ stats, theme = 'dark' }) {
   const [alumniList, setAlumniList] = useState([]);
   const [systemStatus, setSystemStatus] = useState({
     database: 'Connected',
@@ -11,6 +11,7 @@ function AdvancedMetrics({ stats }) {
     responseTime: '45ms'
   });
   const [loading, setLoading] = useState(true);
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     fetchAlumniData();
@@ -149,22 +150,22 @@ function AdvancedMetrics({ stats }) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={isDark ? 'space-y-6' : 'space-y-6 text-slate-900'}>
       {/* Charts Header */}
       <div className="flex items-center gap-3">
-        <BarChart3 className="w-6 h-6 text-cyan-400" />
-        <h2 className="text-2xl font-bold text-white">Advanced Analytics</h2>
+        <BarChart3 className={isDark ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600'} />
+        <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>Advanced Analytics</h2>
       </div>
 
       {/* Real Data Overview Chart */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+      <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Current Platform Stats</p>
-            <h3 className="text-xl font-bold text-white">Real-Time Metrics</h3>
+            <p className={isDark ? 'text-sm uppercase tracking-[0.3em] text-slate-500' : 'text-sm uppercase tracking-[0.3em] text-slate-600'}>Current Platform Stats</p>
+            <h3 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>Real-Time Metrics</h3>
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-400">Last Updated: Just Now</p>
+            <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Last Updated: Just Now</p>
           </div>
         </div>
 
@@ -198,10 +199,10 @@ function AdvancedMetrics({ stats }) {
       {/* Grid: Engagement & Top Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Engagement Metrics */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
           <div className="flex items-center gap-3 mb-6">
             <TrendingUp className="w-6 h-6 text-cyan-400" />
-            <h3 className="text-xl font-bold text-white">Engagement Metrics</h3>
+            <h3 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>Engagement Metrics</h3>
           </div>
 
           <div className="space-y-4">
@@ -223,10 +224,10 @@ function AdvancedMetrics({ stats }) {
         </div>
 
         {/* Top Active Alumni */}
-        <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
           <div className="flex items-center gap-3 mb-6">
             <CheckCircle className="w-6 h-6 text-cyan-400" />
-            <h3 className="text-xl font-bold text-white">Top Active Alumni</h3>
+            <h3 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>Top Active Alumni</h3>
           </div>
 
           {loading ? (
@@ -263,10 +264,10 @@ function AdvancedMetrics({ stats }) {
       </div>
 
       {/* System Health */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+      <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6' : 'bg-white border border-slate-200 rounded-2xl p-6'}>
         <div className="flex items-center gap-3 mb-6">
           <AlertCircle className="w-6 h-6 text-cyan-400" />
-          <h3 className="text-xl font-bold text-white">System Health</h3>
+          <h3 className={isDark ? 'text-xl font-bold text-white' : 'text-xl font-bold text-slate-900'}>System Health</h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

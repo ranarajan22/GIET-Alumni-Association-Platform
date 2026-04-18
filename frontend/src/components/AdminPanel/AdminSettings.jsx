@@ -234,29 +234,29 @@ function AdminSettings({ theme = 'dark' }) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">Application Name</label>
+                <label className={isDark ? 'block text-sm font-semibold text-slate-200 mb-2' : 'block text-sm font-semibold text-slate-700 mb-2'}>Application Name</label>
                 <input
                   type="text"
                   value={settings.appName}
                   onChange={(e) => handleSettingChange('appName', e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className={isDark ? 'w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500' : 'w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-200 mb-2">Max Upload Size (MB)</label>
+                <label className={isDark ? 'block text-sm font-semibold text-slate-200 mb-2' : 'block text-sm font-semibold text-slate-700 mb-2'}>Max Upload Size (MB)</label>
                 <input
                   type="number"
                   value={settings.maxUploadSize}
                   onChange={(e) => handleSettingChange('maxUploadSize', parseInt(e.target.value))}
-                  className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500"
+                  className={isDark ? 'w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500' : 'w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
                 />
               </div>
 
-              <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+              <div className={isDark ? 'flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700' : 'flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200'}>
                 <div>
-                  <p className="font-semibold text-white">Maintenance Mode</p>
-                  <p className="text-xs text-slate-400">Temporarily disable user access</p>
+                  <p className={isDark ? 'font-semibold text-white' : 'font-semibold text-slate-900'}>Maintenance Mode</p>
+                  <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Temporarily disable user access</p>
                 </div>
                 <button
                   onClick={() => handleSettingChange('maintenanceMode', !settings.maintenanceMode)}
@@ -291,8 +291,8 @@ function AdminSettings({ theme = 'dark' }) {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                <p className="font-semibold text-white">Admin Account</p>
+              <div className={isDark ? 'p-4 bg-slate-800/50 rounded-lg border border-slate-700' : 'p-4 bg-slate-50 rounded-lg border border-slate-200'}>
+                <p className={isDark ? 'font-semibold text-white' : 'font-semibold text-slate-900'}>Admin Account</p>
                 <div className="flex items-center gap-3 mt-3">
                   <img
                     src={profilePhoto || assets.Profile}
@@ -305,14 +305,14 @@ function AdminSettings({ theme = 'dark' }) {
                     }}
                   />
                   <div>
-                    <p className="text-slate-200">{loggedInUser}</p>
-                    <p className="text-xs text-slate-400">Active</p>
+                    <p className={isDark ? 'text-slate-200' : 'text-slate-800'}>{loggedInUser}</p>
+                    <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Active</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                <p className="font-semibold text-white mb-3">Change Password</p>
+              <div className={isDark ? 'p-4 bg-slate-800/50 rounded-lg border border-slate-700' : 'p-4 bg-slate-50 rounded-lg border border-slate-200'}>
+                <p className={isDark ? 'font-semibold text-white mb-3' : 'font-semibold text-slate-900 mb-3'}>Change Password</p>
                 
                 <div className="space-y-3">
                   {/* Current Password */}
@@ -322,7 +322,7 @@ function AdminSettings({ theme = 'dark' }) {
                       placeholder="Current password"
                       value={passwordData.currentPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10"
+                      className={isDark ? 'w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10' : 'w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10'}
                     />
                     <button
                       type="button"
@@ -340,7 +340,7 @@ function AdminSettings({ theme = 'dark' }) {
                       placeholder="New password (min 6 characters)"
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10"
+                      className={isDark ? 'w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10' : 'w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10'}
                     />
                     <button
                       type="button"
@@ -358,7 +358,7 @@ function AdminSettings({ theme = 'dark' }) {
                       placeholder="Confirm new password"
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10"
+                      className={isDark ? 'w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10' : 'w-full px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500 pr-10'}
                     />
                     <button
                       type="button"
@@ -424,10 +424,10 @@ function AdminSettings({ theme = 'dark' }) {
                 { id: 4, label: 'Job Postings', desc: 'Get notified for new job openings' },
                 { id: 5, label: 'Mentorship Offers', desc: 'Get notified for new mentorships' },
               ].map((notif) => (
-                <div key={notif.id} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                <div key={notif.id} className={isDark ? 'flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700' : 'flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200'}>
                   <div>
-                    <p className="font-semibold text-white">{notif.label}</p>
-                    <p className="text-xs text-slate-400">{notif.desc}</p>
+                    <p className={isDark ? 'font-semibold text-white' : 'font-semibold text-slate-900'}>{notif.label}</p>
+                    <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>{notif.desc}</p>
                   </div>
                   <input
                     type="checkbox"
@@ -459,16 +459,16 @@ function AdminSettings({ theme = 'dark' }) {
 
             <div className="space-y-2">
               {logs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition">
+                <div key={log.id} className={isDark ? 'flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition' : 'flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-300 transition'}>
                   <div className="flex items-center gap-4 flex-1">
                     <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     <div className="flex-1">
-                      <p className="text-white font-semibold">{log.action}</p>
-                      <p className="text-xs text-slate-400">By {log.by}</p>
+                      <p className={isDark ? 'text-white font-semibold' : 'text-slate-900 font-semibold'}>{log.action}</p>
+                      <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>By {log.by}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-slate-400">{log.time}</p>
+                    <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>{log.time}</p>
                     <span className="inline-block px-2 py-1 rounded text-xs font-semibold bg-emerald-500/20 text-emerald-300 mt-1">
                       {log.status}
                     </span>

@@ -4,7 +4,7 @@ import { API_BASE_URL } from '../../config';
 import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, AlertCircle } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
-function BulkAlumniImport() {
+function BulkAlumniImport({ theme = 'dark' }) {
   const [file, setFile] = useState(null);
   const [defaultCourse, setDefaultCourse] = useState('BTECH');
   const [defaultBatch, setDefaultBatch] = useState(new Date().getFullYear());
@@ -16,6 +16,7 @@ function BulkAlumniImport() {
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState(null);
+  const isDark = theme === 'dark';
 
   const fetchHistory = async () => {
     try {
@@ -220,21 +221,21 @@ function BulkAlumniImport() {
   };
 
   return (
-    <section className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6">
+    <section className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-6' : 'bg-white border border-slate-200 rounded-2xl p-6 space-y-6 text-slate-900'}>
       <div>
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Admin Import</p>
-        <h2 className="text-2xl font-bold text-white">Bulk Alumni Registration</h2>
-        <p className="text-sm text-slate-400 mt-1">
+        <p className={isDark ? 'text-xs uppercase tracking-[0.3em] text-slate-500' : 'text-xs uppercase tracking-[0.3em] text-slate-600'}>Admin Import</p>
+        <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>Bulk Alumni Registration</h2>
+        <p className={isDark ? 'text-sm text-slate-400 mt-1' : 'text-sm text-slate-600 mt-1'}>
           Upload one batch Excel file, preview validation, then commit bulk registration.
         </p>
-        <p className="text-xs text-slate-500 mt-2">
+        <p className={isDark ? 'text-xs text-slate-500 mt-2' : 'text-xs text-slate-600 mt-2'}>
           If any optional value is blank in Excel, it is stored as blank and can be updated later from profile edit.
         </p>
       </div>
 
       <div className="grid md:grid-cols-4 gap-4">
-        <label className="md:col-span-2 p-4 rounded-xl border border-dashed border-slate-700 bg-slate-900/70 cursor-pointer hover:border-cyan-500 transition">
-          <div className="flex items-center gap-3 text-slate-300">
+        <label className={isDark ? 'md:col-span-2 p-4 rounded-xl border border-dashed border-slate-700 bg-slate-900/70 cursor-pointer hover:border-cyan-500 transition' : 'md:col-span-2 p-4 rounded-xl border border-dashed border-slate-300 bg-slate-50 cursor-pointer hover:border-cyan-500 transition'}>
+          <div className={isDark ? 'flex items-center gap-3 text-slate-300' : 'flex items-center gap-3 text-slate-700'}>
             <FileSpreadsheet className="w-5 h-5 text-cyan-400" />
             <span>{file ? file.name : 'Select .xlsx file'}</span>
           </div>
@@ -251,13 +252,13 @@ function BulkAlumniImport() {
           value={defaultBatch}
           onChange={(e) => setDefaultBatch(e.target.value)}
           placeholder="Year"
-          className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500' : 'px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-cyan-500'}
         />
 
         <select
           value={defaultCourse}
           onChange={(e) => setDefaultCourse(e.target.value)}
-          className="md:col-span-2 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'md:col-span-2 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500' : 'md:col-span-2 px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-cyan-500'}
         >
           {courseOptions.map((course) => (
             <option key={course.value} value={course.value}>{course.label}</option>
@@ -267,7 +268,7 @@ function BulkAlumniImport() {
         <select
           value={defaultBranch}
           onChange={(e) => setDefaultBranch(e.target.value)}
-          className="md:col-span-4 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'md:col-span-4 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500' : 'md:col-span-4 px-4 py-3 bg-white border border-slate-300 rounded-xl text-slate-900 focus:outline-none focus:border-cyan-500'}
         >
           {branchOptions.map((branch) => (
             <option key={branch.value} value={branch.value}>{branch.label}</option>
@@ -305,8 +306,8 @@ function BulkAlumniImport() {
         </button>
       </div>
 
-      <div className="p-4 rounded-xl bg-slate-950/40 border border-slate-800 text-sm text-slate-300">
-        <p className="font-semibold text-white">Selected import defaults</p>
+      <div className={isDark ? 'p-4 rounded-xl bg-slate-950/40 border border-slate-800 text-sm text-slate-300' : 'p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700'}>
+        <p className={isDark ? 'font-semibold text-white' : 'font-semibold text-slate-900'}>Selected import defaults</p>
         <p className="mt-1">Course: {selectedCourseLabel}</p>
         <p>Branch: {selectedBranchLabel}</p>
       </div>
@@ -320,19 +321,19 @@ function BulkAlumniImport() {
 
       {preview && (
         <div className="space-y-3">
-          <h3 className="text-lg font-semibold text-white">Preview Summary</h3>
+          <h3 className={isDark ? 'text-lg font-semibold text-white' : 'text-lg font-semibold text-slate-900'}>Preview Summary</h3>
           <div className="grid sm:grid-cols-3 gap-3">
-            <div className="p-3 rounded-lg bg-slate-800 border border-slate-700">
-              <p className="text-xs text-slate-400">Valid Rows</p>
-              <p className="text-2xl font-bold text-white">{preview.summary?.totalValidRows || 0}</p>
+            <div className={isDark ? 'p-3 rounded-lg bg-slate-800 border border-slate-700' : 'p-3 rounded-lg bg-white border border-slate-200'}>
+              <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Valid Rows</p>
+              <p className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>{preview.summary?.totalValidRows || 0}</p>
             </div>
-            <div className="p-3 rounded-lg bg-slate-800 border border-slate-700">
-              <p className="text-xs text-slate-400">Error Rows</p>
+            <div className={isDark ? 'p-3 rounded-lg bg-slate-800 border border-slate-700' : 'p-3 rounded-lg bg-white border border-slate-200'}>
+              <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Error Rows</p>
               <p className="text-2xl font-bold text-amber-300">{preview.errorCount || 0}</p>
             </div>
-            <div className="p-3 rounded-lg bg-slate-800 border border-slate-700">
-              <p className="text-xs text-slate-400">Branches Found</p>
-              <p className="text-2xl font-bold text-white">{Object.keys(preview.summary?.branches || {}).length}</p>
+            <div className={isDark ? 'p-3 rounded-lg bg-slate-800 border border-slate-700' : 'p-3 rounded-lg bg-white border border-slate-200'}>
+              <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Branches Found</p>
+              <p className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>{Object.keys(preview.summary?.branches || {}).length}</p>
             </div>
           </div>
         </div>
@@ -367,7 +368,7 @@ function BulkAlumniImport() {
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">Recent Import History</h3>
+          <h3 className={isDark ? 'text-lg font-semibold text-white' : 'text-lg font-semibold text-slate-900'}>Recent Import History</h3>
           <button
             onClick={fetchHistory}
             className="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white"
@@ -410,13 +411,13 @@ function BulkAlumniImport() {
         )}
 
         {historyLoading ? (
-          <p className="text-sm text-slate-400">Loading history...</p>
+          <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>Loading history...</p>
         ) : history.length === 0 ? (
-          <p className="text-sm text-slate-400">No import history yet.</p>
+          <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>No import history yet.</p>
         ) : (
-          <div className="overflow-x-auto border border-slate-800 rounded-xl">
-            <table className="min-w-full text-sm text-left text-slate-200">
-              <thead className="bg-slate-800 text-xs uppercase tracking-wide text-slate-400">
+          <div className={isDark ? 'overflow-x-auto border border-slate-800 rounded-xl' : 'overflow-x-auto border border-slate-200 rounded-xl'}>
+            <table className={isDark ? 'min-w-full text-sm text-left text-slate-200' : 'min-w-full text-sm text-left text-slate-800'}>
+              <thead className={isDark ? 'bg-slate-800 text-xs uppercase tracking-wide text-slate-400' : 'bg-slate-100 text-xs uppercase tracking-wide text-slate-600'}>
                 <tr>
                   <th className="px-3 py-2">When</th>
                   <th className="px-3 py-2">File</th>
@@ -427,9 +428,9 @@ function BulkAlumniImport() {
                   <th className="px-3 py-2">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className={isDark ? 'divide-y divide-slate-800' : 'divide-y divide-slate-200'}>
                 {history.map((job) => (
-                  <tr key={job._id} className="hover:bg-slate-800/50">
+                  <tr key={job._id} className={isDark ? 'hover:bg-slate-800/50' : 'hover:bg-slate-50'}>
                     <td className="px-3 py-2">{new Date(job.createdAt).toLocaleString()}</td>
                     <td className="px-3 py-2">{job.fileName}</td>
                     <td className="px-3 py-2">{job.mode}</td>

@@ -3,10 +3,11 @@ import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Mail, Download } from 'lucide-react';
 
-function SubscribersList() {
+function SubscribersList({ theme = 'dark' }) {
   const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const isDark = theme === 'dark';
 
   useEffect(() => {
     fetchSubscribers();
@@ -66,11 +67,11 @@ function SubscribersList() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className={isDark ? 'space-y-6' : 'space-y-6 text-slate-900'}>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Mail className="w-8 h-8 text-cyan-400" />
-          <h1 className="text-3xl font-bold text-white">Newsletter Subscribers</h1>
+          <Mail className={isDark ? 'w-8 h-8 text-cyan-400' : 'w-8 h-8 text-cyan-600'} />
+          <h1 className={isDark ? 'text-3xl font-bold text-white' : 'text-3xl font-bold text-slate-900'}>Newsletter Subscribers</h1>
         </div>
         {subscribers.length > 0 && (
           <button
@@ -84,9 +85,9 @@ function SubscribersList() {
       </div>
 
       {/* Stats */}
-      <div className="bg-slate-800/40 border border-slate-700 rounded-xl p-4">
-        <p className="text-sm text-slate-400">Total Subscribers</p>
-        <p className="text-3xl font-bold text-white">{subscribers.length}</p>
+      <div className={isDark ? 'bg-slate-800/40 border border-slate-700 rounded-xl p-4' : 'bg-white border border-slate-200 rounded-xl p-4'}>
+        <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>Total Subscribers</p>
+        <p className={isDark ? 'text-3xl font-bold text-white' : 'text-3xl font-bold text-slate-900'}>{subscribers.length}</p>
       </div>
 
       {/* Error Message */}
@@ -100,16 +101,16 @@ function SubscribersList() {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-slate-700">
-              <th className="text-left px-4 py-3 text-slate-300 font-semibold">#</th>
-              <th className="text-left px-4 py-3 text-slate-300 font-semibold">Email Address</th>
-              <th className="text-left px-4 py-3 text-slate-300 font-semibold">Subscribed On</th>
+            <tr className={isDark ? 'border-b border-slate-700' : 'border-b border-slate-200'}>
+              <th className={isDark ? 'text-left px-4 py-3 text-slate-300 font-semibold' : 'text-left px-4 py-3 text-slate-700 font-semibold'}>#</th>
+              <th className={isDark ? 'text-left px-4 py-3 text-slate-300 font-semibold' : 'text-left px-4 py-3 text-slate-700 font-semibold'}>Email Address</th>
+              <th className={isDark ? 'text-left px-4 py-3 text-slate-300 font-semibold' : 'text-left px-4 py-3 text-slate-700 font-semibold'}>Subscribed On</th>
             </tr>
           </thead>
           <tbody>
             {subscribers.length === 0 ? (
               <tr>
-                <td colSpan="3" className="text-center py-8 text-slate-400">
+                <td colSpan="3" className={isDark ? 'text-center py-8 text-slate-400' : 'text-center py-8 text-slate-600'}>
                   No subscribers yet
                 </td>
               </tr>
@@ -117,11 +118,11 @@ function SubscribersList() {
               subscribers.map((subscriber, index) => (
                 <tr
                   key={subscriber._id}
-                  className="border-b border-slate-700 hover:bg-slate-800/20 transition"
+                  className={isDark ? 'border-b border-slate-700 hover:bg-slate-800/20 transition' : 'border-b border-slate-200 hover:bg-slate-50 transition'}
                 >
-                  <td className="px-4 py-3 text-slate-300">{index + 1}</td>
-                  <td className="px-4 py-3 text-white font-medium">{subscriber.email}</td>
-                  <td className="px-4 py-3 text-slate-400">
+                  <td className={isDark ? 'px-4 py-3 text-slate-300' : 'px-4 py-3 text-slate-700'}>{index + 1}</td>
+                  <td className={isDark ? 'px-4 py-3 text-white font-medium' : 'px-4 py-3 text-slate-900 font-medium'}>{subscriber.email}</td>
+                  <td className={isDark ? 'px-4 py-3 text-slate-400' : 'px-4 py-3 text-slate-600'}>
                     {new Date(subscriber.subscribedAt).toLocaleDateString()}
                   </td>
                 </tr>
