@@ -97,17 +97,17 @@ function ContactMessages({ theme = 'dark' }) {
           <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>Total Messages</p>
           <p className={isDark ? 'text-3xl font-bold text-white' : 'text-3xl font-bold text-slate-900'}>{stats.total}</p>
         </div>
-        <div className="bg-blue-800/40 border border-blue-700/50 rounded-xl p-4">
-          <p className="text-sm text-blue-300">New</p>
-          <p className="text-3xl font-bold text-blue-300">{stats.new}</p>
+        <div className={isDark ? 'bg-blue-800/40 border border-blue-700/50 rounded-xl p-4' : 'bg-blue-50 border border-blue-200 rounded-xl p-4'}>
+          <p className={isDark ? 'text-sm text-blue-300' : 'text-sm text-blue-700'}>New</p>
+          <p className={isDark ? 'text-3xl font-bold text-blue-300' : 'text-3xl font-bold text-blue-700'}>{stats.new}</p>
         </div>
-        <div className="bg-yellow-800/40 border border-yellow-700/50 rounded-xl p-4">
-          <p className="text-sm text-yellow-300">Read</p>
-          <p className="text-3xl font-bold text-yellow-300">{stats.read}</p>
+        <div className={isDark ? 'bg-yellow-800/40 border border-yellow-700/50 rounded-xl p-4' : 'bg-yellow-50 border border-yellow-200 rounded-xl p-4'}>
+          <p className={isDark ? 'text-sm text-yellow-300' : 'text-sm text-yellow-700'}>Read</p>
+          <p className={isDark ? 'text-3xl font-bold text-yellow-300' : 'text-3xl font-bold text-yellow-700'}>{stats.read}</p>
         </div>
-        <div className="bg-green-800/40 border border-green-700/50 rounded-xl p-4">
-          <p className="text-sm text-green-300">Responded</p>
-          <p className="text-3xl font-bold text-green-300">{stats.responded}</p>
+        <div className={isDark ? 'bg-green-800/40 border border-green-700/50 rounded-xl p-4' : 'bg-green-50 border border-green-200 rounded-xl p-4'}>
+          <p className={isDark ? 'text-sm text-green-300' : 'text-sm text-green-700'}>Responded</p>
+          <p className={isDark ? 'text-3xl font-bold text-green-300' : 'text-3xl font-bold text-green-700'}>{stats.responded}</p>
         </div>
       </div>
 
@@ -163,12 +163,12 @@ function ContactMessages({ theme = 'dark' }) {
               </div>
 
               <div className="mb-4">
-                <p className="text-sm font-semibold text-cyan-300 mb-1">Subject:</p>
+                <p className={isDark ? 'text-sm font-semibold text-cyan-300 mb-1' : 'text-sm font-semibold text-cyan-700 mb-1'}>Subject:</p>
                 <p className={isDark ? 'text-slate-200' : 'text-slate-800'}>{contact.subject}</p>
               </div>
 
               <div className="mb-3">
-                <p className="text-sm font-semibold text-cyan-300 mb-1">Message:</p>
+                <p className={isDark ? 'text-sm font-semibold text-cyan-300 mb-1' : 'text-sm font-semibold text-cyan-700 mb-1'}>Message:</p>
                 <p className={isDark ? 'text-slate-300 whitespace-pre-wrap' : 'text-slate-700 whitespace-pre-wrap'}>{contact.message}</p>
               </div>
 

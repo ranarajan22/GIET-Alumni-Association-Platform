@@ -201,7 +201,7 @@ function AdminPanel() {
                                 {loading ? (
                                     <div className="space-y-3">
                                         {[1, 2, 3].map((i) => (
-                                            <div key={i} className="h-12 bg-slate-800 rounded-lg animate-pulse" />
+                                            <div key={i} className={isDark ? 'h-12 bg-slate-800 rounded-lg animate-pulse' : 'h-12 bg-slate-200 rounded-lg animate-pulse'} />
                                         ))}
                                     </div>
                                 ) : activity.length === 0 ? (

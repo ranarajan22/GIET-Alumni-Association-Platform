@@ -215,7 +215,7 @@ function Students({ theme = 'dark' }) {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+            className={isDark ? 'w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500' : 'w-full pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:border-cyan-500'}
           />
         </div>
 
@@ -225,7 +225,7 @@ function Students({ theme = 'dark' }) {
             setFilterCourse(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500' : 'px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
         >
           <option value="">All Courses ({filterCounters.allCoursesCount})</option>
           {courseOptions.map((course) => (
@@ -241,7 +241,7 @@ function Students({ theme = 'dark' }) {
             setFilterGradYear(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500' : 'px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
         >
           <option value="">All Years ({filterCounters.allYearsCount})</option>
           {gradYears.map((y) => (
@@ -257,7 +257,7 @@ function Students({ theme = 'dark' }) {
             setFilterBranch(e.target.value);
             setCurrentPage(1);
           }}
-          className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500' : 'px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
         >
           <option value="">All Branches ({filterCounters.allBranchesCount})</option>
           {branchOptions.map((branch) => (
@@ -270,7 +270,7 @@ function Students({ theme = 'dark' }) {
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
+          className={isDark ? 'px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500' : 'px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
         >
           <option value="name">Sort by Name</option>
           <option value="email">Sort by Email</option>
