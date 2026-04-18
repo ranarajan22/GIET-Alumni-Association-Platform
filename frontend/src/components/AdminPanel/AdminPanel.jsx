@@ -93,7 +93,7 @@ function AdminPanel() {
                 onToggleTheme={toggleTheme}
             />
 
-            <div className="flex pt-20">
+            <div className="flex h-[calc(100vh-5rem)] mt-20 overflow-hidden">
                 {/* Mobile Overlay */}
                 {isSidebarOpen && (
                     <div
@@ -103,16 +103,16 @@ function AdminPanel() {
                 )}
 
                 {/* Sidebar */}
-                <div className={`fixed md:static inset-y-0 left-0 z-40 transform transition-transform duration-300 ${
+                <div className={`fixed top-20 bottom-0 left-0 md:static md:top-auto md:bottom-auto z-40 transform transition-transform duration-300 md:h-full md:overflow-y-auto ${
                     isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 }`}>
                     <Sidebar setCurrentView={setCurrentView} currentView={currentView} onClose={() => setIsSidebarOpen(false)} />
                 </div>
 
                 {/* Main Content */}
-                <main className="flex-1 w-full">
+                <main className="flex-1 w-full h-full overflow-hidden">
                     {/* Content Area */}
-                    <div className="p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8 overflow-y-auto">
+                    <div className="h-full p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8 overflow-y-auto">
                         {currentView === 'all' && (
                             <>
                                 {/* Stats Cards - Real Time */}

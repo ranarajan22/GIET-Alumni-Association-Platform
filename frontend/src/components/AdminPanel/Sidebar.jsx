@@ -22,13 +22,13 @@ function Sidebar({ setCurrentView, currentView, onClose }) {
     ];
 
     return (
-        <aside className="w-64 bg-gradient-to-b from-slate-900 to-slate-950 text-white h-screen border-r border-slate-800 shadow-xl flex flex-col">
+        <aside className="w-64 bg-gradient-to-b from-slate-900 to-slate-950 text-white h-full border-r border-slate-800 shadow-xl flex flex-col overflow-hidden">
             <div className="py-6 px-6 border-b border-slate-800">
                 <img src={assets.Logo} alt="Logo" className="h-10 w-auto mb-3" />
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-400">Control Center</p>
                 <h2 className="text-2xl font-bold text-white mt-1">Admin Panel</h2>
             </div>
-            <nav className="flex-1 py-4 overflow-y-auto">
+            <nav className="flex-1 min-h-0 py-4 overflow-y-auto">
                 <ul>
                     {menuItems.map((item) => {
                         const Icon = item.icon;

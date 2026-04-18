@@ -692,7 +692,7 @@ function Dashboard() {
         <Sidebar setActiveSection={setActiveSection} activeSection={activeSection} onExpandedChange={setIsSidebarExpanded} />
       </div>
 
-      <div className="w-full md:w-[calc(100%-5rem)] ml-0 md:ml-20 pt-16 sm:pt-20 overflow-x-hidden bg-slate-50 dark:bg-slate-950 min-h-[calc(100vh-64px)] sm:min-h-[calc(100vh-80px)] transition-colors">
+      <div className="w-full md:w-[calc(100%-5rem)] ml-0 md:ml-20 pt-16 sm:pt-20 overflow-x-hidden overflow-y-auto bg-slate-50 dark:bg-slate-950 h-[calc(100vh-64px)] sm:h-[calc(100vh-80px)] transition-colors">
 
         {renderContent()}
 
