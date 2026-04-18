@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob } = require('../Controllers/AdminController');
+const { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob, addAlumniVisitDate } = require('../Controllers/AdminController');
 const { importAlumniFromExcel, getImportHistory, getImportHistoryById } = require('../Controllers/AdminImportController');
 const protectRoute = require('../Middlewares/ProtectRoute');
 const requireAdmin = require('../Middlewares/RequireAdmin');
@@ -40,6 +40,7 @@ router.get('/students', protectRoute, requireAdmin, getStudents);
 router.get('/alumni', protectRoute, requireAdmin, getAllAlumni);
 
 router.put('/alumni/:id/reset-password-dob', protectRoute, requireAdmin, resetAlumniPasswordToDob);
+router.put('/alumni/:id/visit-date', protectRoute, requireAdmin, addAlumniVisitDate);
 
 // Combined activity feed
 router.get('/activity', protectRoute, requireAdmin, getActivity);

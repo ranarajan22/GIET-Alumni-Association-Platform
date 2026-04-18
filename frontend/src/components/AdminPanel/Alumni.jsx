@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
-import { Shield, AlertTriangle, Search } from 'lucide-react';
+import { Shield, AlertTriangle, Search, CalendarPlus } from 'lucide-react';
 
 const Alumni = ({ showAll = true }) => {
   const [alumniList, setAlumni] = useState([]);
@@ -12,6 +12,7 @@ const Alumni = ({ showAll = true }) => {
   const [courseFilter, setCourseFilter] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [resetInfo, setResetInfo] = useState(null);
+  const [visitInfo, setVisitInfo] = useState('');
   const apiBase = API_BASE_URL;
 
   const makeAbsoluteUrl = (value) => {
@@ -96,6 +97,21 @@ const Alumni = ({ showAll = true }) => {
     }
   };
 
+  const handleAddVisitDate = async (id) => {
+    const visitDate = window.prompt('Enter visit date (YYYY-MM-DD):', new Date().toISOString().slice(0, 10));
+    if (!visitDate) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.put(`${apiBase}/admin/alumni/${id}/visit-date`, { visitDate }, { headers });
+      setVisitInfo(`Visit date ${visitDate} added successfully.`);
+      fetchAlumni();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to add visit date');
+    }
+  };
+
   const skeletons = Array.from({ length: 3 });
 
   return (
@@ -140,6 +156,30 @@ const Alumni = ({ showAll = true }) => {
         </div>
       )}
 
+      {visitInfo && (
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-200 text-sm">
+          {visitInfo}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => setBatchFilter('')}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${!batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
+        >
+          All Years
+        </button>
+        {batches.sort((a, b) => b - a).map((year) => (
+          <button
+            key={year}
+            onClick={() => setBatchFilter(String(year))}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${String(year) === batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {skeletons.map((_, idx) => (
@@ -166,86 +206,43 @@ const Alumni = ({ showAll = true }) => {
           No alumni found for selected filters.
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredAlumni.map((alumni) => (
-            <div key={alumni._id} className="p-5 bg-slate-900/60 border border-slate-800 rounded-2xl shadow-lg">
-              <div className="flex items-center gap-4">
+            <div key={alumni._id} className="p-4 bg-slate-900/60 border border-slate-800 rounded-xl shadow-lg">
+              <div className="flex items-center gap-3">
                 <img
                   src={makeAbsoluteUrl(alumni.profilePhoto)}
                   alt={alumni.fullName}
-                  className="w-14 h-14 rounded-full object-cover border border-slate-700"
+                  className="w-12 h-12 rounded-full object-cover border border-slate-700"
                 />
-                <div className="space-y-1">
-                  <h3 className="font-bold text-lg text-white">{alumni.fullName}</h3>
-                  <p className="text-sm text-slate-400">Class of {alumni.graduationYear}</p>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-sm text-white truncate">{alumni.fullName || 'NA'}</h3>
+                  <p className="text-xs text-slate-400 truncate">{alumni.registrationNumber || 'NA'}</p>
                 </div>
               </div>
-              <div className="mt-4 space-y-2 text-sm text-slate-300">
-                <p className="flex justify-between"><span className="text-slate-400">Email:</span> <span className="text-white break-all">{alumni.collegeEmail}</span></p>
-                {alumni.registrationNumber && (
-                  <p className="flex justify-between"><span className="text-slate-400">Registration No:</span> <span className="text-white">{alumni.registrationNumber}</span></p>
-                )}
-                {(alumni.course || alumni.fieldOfStudy) && (
-                  <p className="flex justify-between"><span className="text-slate-400">Course / Field:</span> <span className="text-white text-right">{alumni.course || '—'}{alumni.course && alumni.fieldOfStudy ? ' • ' : ''}{alumni.fieldOfStudy || ''}</span></p>
-                )}
-                {showAll && (
-                  <>
-                    <p className="flex justify-between"><span className="text-slate-400">Branch:</span> <span className="text-white">{alumni.branch || '—'}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Mobile:</span> <span className="text-white">{alumni.mobile || '—'}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Gender:</span> <span className="text-white">{alumni.gender || '—'}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Date of Birth:</span> <span className="text-white">{formatDate(alumni.dob)}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Date of Marriage:</span> <span className="text-white">{formatDate(alumni.dateOfMarriage)}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Current Company:</span> <span className="text-white text-right">{alumni.currentCompany || '—'}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Designation:</span> <span className="text-white text-right">{alumni.designation || '—'}</span></p>
-                    <p className="flex justify-between"><span className="text-slate-400">Current Location:</span> <span className="text-white text-right">{alumni.currentLocation || '—'}</span></p>
-                  </>
-                )}
-                {alumni.usn && (
-                  <p className="flex justify-between"><span className="text-slate-400">USN:</span> <span className="text-white">{alumni.usn}</span></p>
-                )}
-                <div className="flex flex-wrap gap-2 items-center text-xs">
-                  {alumni.linkedin && (
-                    <a href={alumni.linkedin} target="_blank" rel="noreferrer" className="px-2 py-1 rounded bg-cyan-500/15 text-cyan-200 border border-cyan-500/30">LinkedIn</a>
-                  )}
-                  {alumni.github && (
-                    <a href={alumni.github} target="_blank" rel="noreferrer" className="px-2 py-1 rounded bg-purple-500/15 text-purple-200 border border-purple-500/30">GitHub</a>
-                  )}
-                  {alumni.followers && alumni.followers.length > 0 && (
-                    <span className="px-2 py-1 rounded bg-slate-800 text-slate-200 border border-slate-700">Followers: {alumni.followers.length}</span>
-                  )}
-                </div>
-                {(alumni.degreeCertificate || alumni.degreeCertificateImage) && (
-                  <div className="flex gap-2">
-                    {alumni.degreeCertificate && (
-                      <a
-                        href={makeAbsoluteUrl(alumni.degreeCertificate)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 inline-flex items-center justify-center px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-sm font-semibold text-white border border-cyan-500/60"
-                      >
-                        View Certificate Link
-                      </a>
-                    )}
-                    {alumni.degreeCertificateImage && (
-                      <a
-                        href={makeAbsoluteUrl(alumni.degreeCertificateImage)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex-1 inline-flex items-center justify-center px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-sm font-semibold text-white border border-purple-500/60"
-                      >
-                        View Certificate Image
-                      </a>
-                    )}
-                  </div>
-                )}
+              <div className="mt-3 text-xs text-slate-400">
+                <p>Year: <span className="text-slate-200">{alumni.graduationYear || 'NA'}</span></p>
+                <p>Course: <span className="text-slate-200">{alumni.course || 'NA'}</span></p>
               </div>
-              <div className="mt-3">
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   onClick={() => handleResetPasswordToDob(alumni._id)}
-                  className="w-full px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-sm font-semibold text-white"
+                  className="w-full px-3 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-xs font-semibold text-white"
                 >
                   Reset Password to DOB
                 </button>
+                <button
+                  onClick={() => handleAddVisitDate(alumni._id)}
+                  className="w-full px-3 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
+                >
+                  <CalendarPlus className="w-3 h-3" />
+                  Add Visit Date
+                </button>
+              </div>
+
+              <div className="mt-2 text-[11px] text-slate-500">
+                Last Visit: {formatDate((alumni.dateOfVisit || [])[alumni.dateOfVisit?.length - 1])}
               </div>
             </div>
           ))}

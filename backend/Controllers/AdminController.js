@@ -218,4 +218,34 @@ const resetAlumniPasswordToDob = async (req, res) => {
   }
 };
 
-module.exports = { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob };
+const addAlumniVisitDate = async (req, res) => {
+  try {
+    const { visitDate } = req.body;
+    const parsedDate = visitDate ? new Date(visitDate) : new Date();
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ success: false, message: 'Invalid visit date format' });
+    }
+
+    const alumni = await Alumni.findByIdAndUpdate(
+      req.params.id,
+      { $addToSet: { dateOfVisit: parsedDate } },
+      { new: true }
+    );
+
+    if (!alumni) {
+      return res.status(404).json({ success: false, message: 'Alumni not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Visit date added successfully',
+      dateOfVisit: alumni.dateOfVisit || []
+    });
+  } catch (error) {
+    console.error('Error adding alumni visit date:', error);
+    return res.status(500).json({ success: false, message: 'Failed to add visit date' });
+  }
+};
+
+module.exports = { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob, addAlumniVisitDate };

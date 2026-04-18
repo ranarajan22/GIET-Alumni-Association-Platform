@@ -1,6 +1,7 @@
 const fs = require('fs');
 const ExcelJS = require('exceljs');
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 const Alumni = require('../Models/alumni');
 const ImportJob = require('../Models/importJob');
 
@@ -34,7 +35,16 @@ const BRANCH_ALIASES = {
 };
 
 const HEADER_PATTERNS = {
-  rollNo: ['roll', 'regd', 'registration', 'reg no', 'usn'],
+  rollNo: [
+    'roll',
+    'regd',
+    'registration',
+    'reg no',
+    'usn',
+    'university registration number',
+    'university regd no',
+    'university reg no'
+  ],
   fullName: ['name of the alumni', 'name', 'student name', 'full name'],
   branch: ['branch', 'department', 'dept'],
   batch: ['batch pass out', 'batch', 'graduation year', 'pass out'],
@@ -47,6 +57,14 @@ const HEADER_PATTERNS = {
   currentCompany: ['current company', 'company', 'organization', 'organisation'],
   designation: ['designation', 'job title', 'role', 'position'],
   currentLocation: ['current location', 'location', 'city'],
+  parentsMobile: ['parents mobile', 'parent mobile', 'guardian mobile', 'father mobile', 'mother mobile'],
+  personalEmail: ['personal mail id', 'personal email', 'mail id', 'personal mail'],
+  fatherName: ['father name', 'fathers name'],
+  motherName: ['mother name', 'mothers name'],
+  religion: ['religion'],
+  higherStudy: ['higher study', 'higher studies', 'higher education'],
+  permanentAddress: ['permanent address', 'address'],
+  dateOfVisit: ['date of visit', 'visit date', 'date visited'],
   linkedin: ['linkedin', 'linkedin url'],
   github: ['github', 'github url']
 };
@@ -145,6 +163,12 @@ function toTempPassword(dobDate) {
   return `${dd}${mm}${yyyy}`;
 }
 
+function fallbackTempPassword(rollNo) {
+  const cleaned = normalizeText(rollNo).replace(/[^a-zA-Z0-9]/g, '');
+  const tail = cleaned.slice(-6).padStart(6, '0');
+  return `${tail}123`;
+}
+
 function yearFromFileName(name) {
   const match = name.match(/(20\d{2})/);
   return match ? Number(match[1]) : null;
@@ -159,6 +183,74 @@ function buildEmail(rollNo, providedEmail) {
 function getCell(row, idx) {
   if (idx === undefined) return '';
   return normalizeText(row[idx]);
+}
+
+function sanitizeYearKey(value) {
+  const year = Number(value);
+  if (Number.isFinite(year) && year >= 1900 && year <= 3000) return String(year);
+  return 'unknown';
+}
+
+async function upsertYearCollections(records, sourceFile) {
+  if (!records.length) return {};
+
+  const grouped = new Map();
+  records.forEach((record) => {
+    const key = sanitizeYearKey(record.batch);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(record);
+  });
+
+  const yearTables = {};
+
+  for (const [year, rows] of grouped.entries()) {
+    const collectionName = `alumni_year_${year}`;
+    const collection = mongoose.connection.collection(collectionName);
+
+    const ops = rows.map((row) => ({
+      updateOne: {
+        filter: { registrationNumber: row.rollNo },
+        update: {
+          $set: {
+            registrationNumber: row.rollNo,
+            fullName: row.fullName,
+            graduationYear: Number(row.batch) || null,
+            course: row.course,
+            branch: row.branch,
+            collegeEmail: row.collegeEmail,
+            mobile: row.mobile,
+            gender: row.gender,
+            parentsMobile: row.parentsMobile,
+            personalEmail: row.personalEmail,
+            fatherName: row.fatherName,
+            motherName: row.motherName,
+            religion: row.religion,
+            higherStudy: row.higherStudy,
+            permanentAddress: row.permanentAddress,
+            linkedin: row.linkedin,
+            github: row.github,
+            sourceFile,
+            updatedAt: new Date()
+          },
+          $setOnInsert: {
+            createdAt: new Date()
+          }
+        },
+        upsert: true
+      }
+    }));
+
+    const result = await collection.bulkWrite(ops, { ordered: false });
+    yearTables[year] = {
+      collection: collectionName,
+      totalRows: rows.length,
+      inserted: result?.upsertedCount || 0,
+      updated: result?.modifiedCount || 0,
+      matched: result?.matchedCount || 0
+    };
+  }
+
+  return yearTables;
 }
 
 async function parseWorkbook(fileInput, fileName, options = {}) {
@@ -198,33 +290,46 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
     const row = rows[i] || [];
     const rowNumber = i + 1;
 
-    const rollNo = getCell(row, columns.rollNo).toUpperCase();
-    const fullName = getCell(row, columns.fullName);
-    const branchRaw = getCell(row, columns.branch);
-    const branch = normalizeBranch(branchRaw);
     const batchText = getCell(row, columns.batch);
-    const batch = Number(batchText) || batchFromFile || Number(options.batch) || null;
+    const batch = Number(batchText) || Number(options.defaultBatch) || batchFromFile || new Date().getFullYear();
+
+    const rollNoRaw = getCell(row, columns.rollNo).toUpperCase();
+    const rollNo = rollNoRaw;
+    const fullName = normalizeText(getCell(row, columns.fullName));
+    const branchRaw = getCell(row, columns.branch) || options.defaultBranch || '';
+    const branch = normalizeBranch(branchRaw || '');
     const course = normalizeText(getCell(row, columns.course) || options.course || defaultCourse).toUpperCase();
     const dob = parseExcelDate(row[columns.dob], date1904);
-    const tempPassword = toTempPassword(dob);
+    const tempPassword = toTempPassword(dob) || fallbackTempPassword(rollNo);
     const collegeEmail = buildEmail(rollNo, getCell(row, columns.collegeEmail));
-    const mobile = getCell(row, columns.mobile);
-    const gender = getCell(row, columns.gender);
+    const mobile = normalizeText(getCell(row, columns.mobile));
+    const gender = normalizeText(getCell(row, columns.gender));
     const dateOfMarriage = parseExcelDate(row[columns.dateOfMarriage], date1904);
-    const currentCompany = getCell(row, columns.currentCompany);
-    const designation = getCell(row, columns.designation);
-    const currentLocation = getCell(row, columns.currentLocation);
-    const linkedin = getCell(row, columns.linkedin);
-    const github = getCell(row, columns.github);
+    const currentCompany = normalizeText(getCell(row, columns.currentCompany));
+    const designation = normalizeText(getCell(row, columns.designation));
+    const currentLocation = normalizeText(getCell(row, columns.currentLocation));
+    const parentsMobile = normalizeText(getCell(row, columns.parentsMobile));
+    const personalEmailRaw = normalizeText(getCell(row, columns.personalEmail));
+    const personalEmail = personalEmailRaw && personalEmailRaw.includes('@') ? personalEmailRaw.toLowerCase() : '';
+    const fatherName = normalizeText(getCell(row, columns.fatherName));
+    const motherName = normalizeText(getCell(row, columns.motherName));
+    const religion = normalizeText(getCell(row, columns.religion));
+    const higherStudy = normalizeText(getCell(row, columns.higherStudy));
+    const permanentAddress = normalizeText(getCell(row, columns.permanentAddress));
+    const linkedin = normalizeText(getCell(row, columns.linkedin));
+    const github = normalizeText(getCell(row, columns.github));
 
-    const isRowEmpty = !rollNo && !fullName && !branchRaw && !batchText;
+    // Date of visit is admin-managed only; import initializes as empty list.
+    const dateOfVisit = [];
+
+    const isRowEmpty = row.every((cell) => !normalizeText(cell));
     if (isRowEmpty) continue;
 
-    if (!rollNo || !fullName || !branch || !batch || !tempPassword) {
+    if (!rollNo || !fullName) {
       errors.push({
         row: rowNumber,
-        rollNo,
-        reason: 'Missing required values (rollNo, fullName, branch, batch, dob)'
+        rollNo: rollNo || '',
+        reason: 'Missing required values (University Registration Number / Name of the Alumni)'
       });
       continue;
     }
@@ -246,6 +351,14 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
       currentCompany,
       designation,
       currentLocation,
+      parentsMobile,
+      personalEmail,
+      fatherName,
+      motherName,
+      religion,
+      higherStudy,
+      permanentAddress,
+      dateOfVisit,
       linkedin,
       github
     });
@@ -322,6 +435,8 @@ const importAlumniFromExcel = async (req, res) => {
     const workbookSource = file.buffer || file.path;
     const { records, errors } = await parseWorkbook(workbookSource, file.originalname, {
       defaultCourse: req.body.defaultCourse,
+      defaultBranch: req.body.defaultBranch,
+      defaultBatch: req.body.defaultBatch,
       batch: req.body.batch,
       course: req.body.course
     });
@@ -366,6 +481,7 @@ const importAlumniFromExcel = async (req, res) => {
             $set: {
               fullName: record.fullName,
               registrationNumber: record.rollNo,
+              usn: record.rollNo,
               collegeEmail: record.collegeEmail,
               graduationYear: Number(record.batch),
               course: record.course,
@@ -376,17 +492,25 @@ const importAlumniFromExcel = async (req, res) => {
               verified: true,
               role: 'alumni',
               importSource: file.originalname,
-              dob: record.dob || undefined,
-              dateOfMarriage: record.dateOfMarriage || undefined,
-              mobile: record.mobile || undefined,
-              gender: record.gender || undefined,
-              currentCompany: record.currentCompany || undefined,
-              designation: record.designation || undefined,
-              currentLocation: record.currentLocation || undefined,
-              linkedin: record.linkedin || undefined,
-              github: record.github || undefined
+              dob: record.dob || null,
+              dateOfMarriage: record.dateOfMarriage || null,
+              mobile: record.mobile,
+              gender: record.gender,
+              currentCompany: record.currentCompany,
+              designation: record.designation,
+              currentLocation: record.currentLocation,
+              parentsMobile: record.parentsMobile,
+              personalEmail: record.personalEmail,
+              fatherName: record.fatherName,
+              motherName: record.motherName,
+              religion: record.religion,
+              higherStudy: record.higherStudy,
+              permanentAddress: record.permanentAddress,
+              linkedin: record.linkedin,
+              github: record.github
             },
             $setOnInsert: {
+              dateOfVisit: [],
               profilePhoto: ''
             }
           },
@@ -404,12 +528,14 @@ const importAlumniFromExcel = async (req, res) => {
     }
 
     const writeResult = ops.length ? await Alumni.bulkWrite(ops, { ordered: false }) : null;
+    const yearTables = await upsertYearCollections(records, file.originalname);
 
     const imported = {
       inserted: writeResult?.upsertedCount || 0,
       updated: writeResult?.modifiedCount || 0,
       matched: writeResult?.matchedCount || 0,
-      passwordsSet: passwordResets
+      passwordsSet: passwordResets,
+      yearTables
     };
 
     const emailWebhookUrl = process.env.EMAIL_WEBHOOK_URL || '';

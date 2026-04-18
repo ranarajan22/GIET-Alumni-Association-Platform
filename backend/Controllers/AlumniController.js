@@ -17,9 +17,13 @@ const NETWORK_ALUMNI_FIELDS = [
   'profilePhoto',
   'linkedin',
   'github',
-  'verified',
   'createdAt'
 ].join(' ');
+
+function normalizeText(value) {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+}
 
 function buildDirectoryFilter(query = {}) {
   const filter = {};
@@ -127,13 +131,28 @@ const getAlumniProfile = async (req, res) => {
         fullName: alumni.fullName,
         graduationYear: alumni.graduationYear,
         collegeEmail: alumni.collegeEmail,
+        personalEmail: alumni.personalEmail,
         profilePhoto: alumni.profilePhoto,
         linkedin: alumni.linkedin,
         github: alumni.github,
-        verified: alumni.verified,
         course: alumni.course,
         usn: alumni.usn,
+        registrationNumber: alumni.registrationNumber,
         fieldOfStudy: alumni.fieldOfStudy,
+        branch: alumni.branch,
+        mobile: alumni.mobile,
+        parentsMobile: alumni.parentsMobile,
+        fatherName: alumni.fatherName,
+        motherName: alumni.motherName,
+        religion: alumni.religion,
+        higherStudy: alumni.higherStudy,
+        permanentAddress: alumni.permanentAddress,
+        dob: alumni.dob,
+        dateOfMarriage: alumni.dateOfMarriage,
+        currentCompany: alumni.currentCompany,
+        designation: alumni.designation,
+        currentLocation: alumni.currentLocation,
+        dateOfVisit: alumni.dateOfVisit || [],
         createdAt: alumni.createdAt,
         followers: alumni.followers || [],
       },
@@ -210,7 +229,30 @@ const getAlumniStats = async (req, res) => {
 const updateAlumniProfile = async (req, res) => {
   try {
     const alumniId = req.user?._id || req.params.id;
-    const { fullName, graduationYear, course, usn, fieldOfStudy, profilePhoto, degreeCertificate } = req.body;
+    const {
+      fullName,
+      graduationYear,
+      course,
+      usn,
+      fieldOfStudy,
+      profilePhoto,
+      degreeCertificate,
+      mobile,
+      parentsMobile,
+      personalEmail,
+      fatherName,
+      motherName,
+      religion,
+      higherStudy,
+      permanentAddress,
+      dob,
+      dateOfMarriage,
+      currentCompany,
+      designation,
+      currentLocation,
+      linkedin,
+      github
+    } = req.body;
 
     if (!alumniId) {
       console.error('No alumni ID provided for update');
@@ -219,9 +261,47 @@ const updateAlumniProfile = async (req, res) => {
 
     console.log('Updating alumni profile for ID:', alumniId);
 
-    const update = { fullName, graduationYear, course, usn, fieldOfStudy };
+    const update = {};
+
+    if (fullName !== undefined) update.fullName = normalizeText(fullName) || 'NA';
+    if (graduationYear !== undefined) update.graduationYear = Number(graduationYear) || new Date().getFullYear();
+    if (course !== undefined) update.course = normalizeText(course) || 'NA';
+    if (fieldOfStudy !== undefined) {
+      const normalizedField = normalizeText(fieldOfStudy) || 'NA';
+      update.fieldOfStudy = normalizedField;
+      update.branch = normalizedField;
+    }
+    if (usn !== undefined) {
+      const normalizedUsn = normalizeText(usn) || 'NA';
+      update.usn = normalizedUsn;
+      update.registrationNumber = normalizedUsn;
+    }
+
     if (typeof profilePhoto === 'string' && profilePhoto.trim()) update.profilePhoto = profilePhoto.trim();
     if (typeof degreeCertificate === 'string' && degreeCertificate.trim()) update.degreeCertificate = degreeCertificate.trim();
+    if (mobile !== undefined) update.mobile = normalizeText(mobile) || 'NA';
+    if (parentsMobile !== undefined) update.parentsMobile = normalizeText(parentsMobile) || 'NA';
+    if (personalEmail !== undefined) update.personalEmail = normalizeText(personalEmail).toLowerCase() || 'NA';
+    if (fatherName !== undefined) update.fatherName = normalizeText(fatherName) || 'NA';
+    if (motherName !== undefined) update.motherName = normalizeText(motherName) || 'NA';
+    if (religion !== undefined) update.religion = normalizeText(religion) || 'NA';
+    if (higherStudy !== undefined) update.higherStudy = normalizeText(higherStudy) || 'NA';
+    if (permanentAddress !== undefined) update.permanentAddress = normalizeText(permanentAddress) || 'NA';
+    if (currentCompany !== undefined) update.currentCompany = normalizeText(currentCompany) || 'NA';
+    if (designation !== undefined) update.designation = normalizeText(designation) || 'NA';
+    if (currentLocation !== undefined) update.currentLocation = normalizeText(currentLocation) || 'NA';
+    if (linkedin !== undefined) update.linkedin = normalizeText(linkedin) || 'NA';
+    if (github !== undefined) update.github = normalizeText(github) || 'NA';
+
+    // Date of visit is admin-managed and intentionally excluded from alumni self-update.
+    if (dob !== undefined) {
+      const parsedDob = new Date(dob);
+      update.dob = Number.isNaN(parsedDob.getTime()) ? null : parsedDob;
+    }
+    if (dateOfMarriage !== undefined) {
+      const parsedMarriage = new Date(dateOfMarriage);
+      update.dateOfMarriage = Number.isNaN(parsedMarriage.getTime()) ? null : parsedMarriage;
+    }
 
     const alumni = await Alumni.findByIdAndUpdate(alumniId, update, { new: true, runValidators: true });
 
@@ -239,11 +319,28 @@ const updateAlumniProfile = async (req, res) => {
         fullName: alumni.fullName,
         graduationYear: alumni.graduationYear,
         collegeEmail: alumni.collegeEmail,
+        personalEmail: alumni.personalEmail,
         profilePhoto: alumni.profilePhoto,
         linkedin: alumni.linkedin,
+        github: alumni.github,
         course: alumni.course,
         usn: alumni.usn,
+        registrationNumber: alumni.registrationNumber,
         fieldOfStudy: alumni.fieldOfStudy,
+        branch: alumni.branch,
+        mobile: alumni.mobile,
+        parentsMobile: alumni.parentsMobile,
+        fatherName: alumni.fatherName,
+        motherName: alumni.motherName,
+        religion: alumni.religion,
+        higherStudy: alumni.higherStudy,
+        permanentAddress: alumni.permanentAddress,
+        dob: alumni.dob,
+        dateOfMarriage: alumni.dateOfMarriage,
+        currentCompany: alumni.currentCompany,
+        designation: alumni.designation,
+        currentLocation: alumni.currentLocation,
+        dateOfVisit: alumni.dateOfVisit || [],
         degreeCertificate: alumni.degreeCertificate,
       }
     });

@@ -13,6 +13,21 @@ const EditProfilePopup = ({ onClose }) => {
     course: "",
     usn: "",
     fieldOfStudy: "",
+    mobile: "",
+    parentsMobile: "",
+    personalEmail: "",
+    fatherName: "",
+    motherName: "",
+    religion: "",
+    higherStudy: "",
+    permanentAddress: "",
+    dob: "",
+    dateOfMarriage: "",
+    currentCompany: "",
+    designation: "",
+    currentLocation: "",
+    linkedin: "",
+    github: "",
   });
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,8 +61,23 @@ const EditProfilePopup = ({ onClose }) => {
             fullName: alumniResponse.data.alumni?.fullName || "",
             graduationYear: alumniResponse.data.alumni?.graduationYear || "",
             course: alumniResponse.data.alumni?.course || "",
-            usn: alumniResponse.data.alumni?.usn || "",
+            usn: alumniResponse.data.alumni?.registrationNumber || alumniResponse.data.alumni?.usn || "",
             fieldOfStudy: alumniResponse.data.alumni?.fieldOfStudy || "",
+            mobile: alumniResponse.data.alumni?.mobile || "",
+            parentsMobile: alumniResponse.data.alumni?.parentsMobile || "",
+            personalEmail: alumniResponse.data.alumni?.personalEmail || "",
+            fatherName: alumniResponse.data.alumni?.fatherName || "",
+            motherName: alumniResponse.data.alumni?.motherName || "",
+            religion: alumniResponse.data.alumni?.religion || "",
+            higherStudy: alumniResponse.data.alumni?.higherStudy || "",
+            permanentAddress: alumniResponse.data.alumni?.permanentAddress || "",
+            dob: alumniResponse.data.alumni?.dob ? String(alumniResponse.data.alumni.dob).slice(0, 10) : "",
+            dateOfMarriage: alumniResponse.data.alumni?.dateOfMarriage ? String(alumniResponse.data.alumni.dateOfMarriage).slice(0, 10) : "",
+            currentCompany: alumniResponse.data.alumni?.currentCompany || "",
+            designation: alumniResponse.data.alumni?.designation || "",
+            currentLocation: alumniResponse.data.alumni?.currentLocation || "",
+            linkedin: alumniResponse.data.alumni?.linkedin || "",
+            github: alumniResponse.data.alumni?.github || "",
           });
         } catch (alumniError) {
           console.error('Alumni fetch error:', alumniError.response?.status, alumniError.response?.data || alumniError.message);
@@ -63,6 +93,21 @@ const EditProfilePopup = ({ onClose }) => {
               course: userResponse.data.course || "",
               usn: userResponse.data.usn || "",
               fieldOfStudy: userResponse.data.fieldOfStudy || "",
+              mobile: "",
+              parentsMobile: "",
+              personalEmail: "",
+              fatherName: "",
+              motherName: "",
+              religion: "",
+              higherStudy: "",
+              permanentAddress: "",
+              dob: "",
+              dateOfMarriage: "",
+              currentCompany: "",
+              designation: "",
+              currentLocation: "",
+              linkedin: "",
+              github: "",
             });
           } catch (studentError) {
             console.error('Student fetch error:', studentError.response?.status, studentError.response?.data || studentError.message);
@@ -118,7 +163,7 @@ const EditProfilePopup = ({ onClose }) => {
   
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white rounded-lg p-6 w-[600px] h-auto">
+      <div className="bg-white rounded-lg p-6 w-[760px] max-h-[88vh] overflow-y-auto h-auto">
         {isLoading ? (
           <p>Loading...</p>
         ) : (
@@ -184,6 +229,71 @@ const EditProfilePopup = ({ onClose }) => {
                   className="border rounded-lg px-3 py-2 w-full"
                 />
               </div>
+
+              {userType === 'alumni' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium">Mobile Number</label>
+                    <input type="text" name="mobile" value={formData.mobile} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Parents Mobile Number</label>
+                    <input type="text" name="parentsMobile" value={formData.parentsMobile} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Personal Mail ID</label>
+                    <input type="email" name="personalEmail" value={formData.personalEmail} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Religion</label>
+                    <input type="text" name="religion" value={formData.religion} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Father Name</label>
+                    <input type="text" name="fatherName" value={formData.fatherName} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Mother Name</label>
+                    <input type="text" name="motherName" value={formData.motherName} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Date of Birth</label>
+                    <input type="date" name="dob" value={formData.dob} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Date of Marriage</label>
+                    <input type="date" name="dateOfMarriage" value={formData.dateOfMarriage} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Current Company</label>
+                    <input type="text" name="currentCompany" value={formData.currentCompany} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Designation</label>
+                    <input type="text" name="designation" value={formData.designation} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Current Location</label>
+                    <input type="text" name="currentLocation" value={formData.currentLocation} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">Higher Study</label>
+                    <input type="text" name="higherStudy" value={formData.higherStudy} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-medium">Permanent Address</label>
+                    <textarea name="permanentAddress" value={formData.permanentAddress} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" rows="2" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">LinkedIn URL</label>
+                    <input type="text" name="linkedin" value={formData.linkedin} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium">GitHub URL</label>
+                    <input type="text" name="github" value={formData.github} onChange={handleInputChange} className="border rounded-lg px-3 py-2 w-full" />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Action Buttons */}

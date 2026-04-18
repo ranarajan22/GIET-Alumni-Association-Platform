@@ -6,6 +6,8 @@ import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2 } from 'lucide-rea
 function BulkAlumniImport() {
   const [file, setFile] = useState(null);
   const [defaultCourse, setDefaultCourse] = useState('BTECH');
+  const [defaultBatch, setDefaultBatch] = useState(new Date().getFullYear());
+  const [defaultBranch, setDefaultBranch] = useState('CSE');
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(null);
   const [result, setResult] = useState(null);
@@ -35,6 +37,8 @@ function BulkAlumniImport() {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('defaultCourse', defaultCourse);
+    formData.append('defaultBatch', String(defaultBatch || ''));
+    formData.append('defaultBranch', defaultBranch);
     return formData;
   };
 
@@ -90,6 +94,15 @@ function BulkAlumniImport() {
       'Mobile',
       'Gender',
       'Date of Marriage',
+      'University Registration Number',
+      'Parents Mobile Number',
+      'Personal Mail ID',
+      'Father Name',
+      'Mother Name',
+      'Religion',
+      'Higher Study',
+      'Permanent Address',
+      'Date of Visit',
       'Current Company',
       'Designation',
       'Current Location',
@@ -112,6 +125,15 @@ function BulkAlumniImport() {
       '9876543210',
       'M',
       '20/11/2025',
+      '22CSE001',
+      '9988776655',
+      'sample.personal@gmail.com',
+      'Ramesh Kumar',
+      'Sita Kumar',
+      'Hindu',
+      'MTech',
+      'Gunupur, Odisha',
+      'NA',
       'Infosys',
       'Software Engineer',
       'Bengaluru',
@@ -171,9 +193,12 @@ function BulkAlumniImport() {
         <p className="text-sm text-slate-400 mt-1">
           Upload one batch Excel file, preview validation, then commit bulk registration.
         </p>
+        <p className="text-xs text-slate-500 mt-2">
+          If any optional value is blank in Excel, it is stored as blank and can be updated later from profile edit.
+        </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-4 gap-4">
         <label className="md:col-span-2 p-4 rounded-xl border border-dashed border-slate-700 bg-slate-900/70 cursor-pointer hover:border-cyan-500 transition">
           <div className="flex items-center gap-3 text-slate-300">
             <FileSpreadsheet className="w-5 h-5 text-cyan-400" />
@@ -187,10 +212,28 @@ function BulkAlumniImport() {
           />
         </label>
 
+        <input
+          type="number"
+          value={defaultBatch}
+          onChange={(e) => setDefaultBatch(e.target.value)}
+          placeholder="Year"
+          className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+        />
+
+        <select
+          value={defaultBranch}
+          onChange={(e) => setDefaultBranch(e.target.value)}
+          className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+        >
+          {['CSE', 'ECE', 'EE', 'MECH', 'CIVIL', 'IT', 'MBA', 'MCA', 'MTECH', 'OTHER'].map((branch) => (
+            <option key={branch} value={branch}>{branch}</option>
+          ))}
+        </select>
+
         <select
           value={defaultCourse}
           onChange={(e) => setDefaultCourse(e.target.value)}
-          className="px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
+          className="md:col-span-4 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
         >
           <option value="BTECH">BTECH</option>
           <option value="MTECH">MTECH</option>
@@ -266,6 +309,16 @@ function BulkAlumniImport() {
           <p className="text-sm">Updated: {result.imported?.updated || 0}</p>
           <p className="text-sm">Passwords Set: {result.imported?.passwordsSet || 0}</p>
           <p className="text-sm">Skipped/Errors: {result.errorCount || 0}</p>
+          {result.imported?.yearTables && (
+            <div className="mt-3 text-xs text-emerald-100/90 space-y-1">
+              <p className="font-semibold">Year-wise tables:</p>
+              {Object.entries(result.imported.yearTables).map(([year, tableInfo]) => (
+                <p key={year}>
+                  {tableInfo.collection}: total {tableInfo.totalRows}, inserted {tableInfo.inserted}, updated {tableInfo.updated}
+                </p>
+              ))}
+            </div>
+          )}
           <div className="mt-3 text-xs text-emerald-100/90">
             <p>Email notification: {result.notifications?.email?.configured ? (result.notifications?.email?.success ? 'sent' : 'failed') : 'not configured'}</p>
             <p>SMS notification: {result.notifications?.sms?.configured ? (result.notifications?.sms?.success ? 'sent' : 'failed') : 'not configured'}</p>

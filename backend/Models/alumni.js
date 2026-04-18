@@ -57,6 +57,38 @@ const alumniSchema = new Schema({
         type: String,
         trim: true,
     },
+    parentsMobile: {
+        type: String,
+        trim: true,
+    },
+    personalEmail: {
+        type: String,
+        trim: true,
+        lowercase: true,
+    },
+    fatherName: {
+        type: String,
+        trim: true,
+    },
+    motherName: {
+        type: String,
+        trim: true,
+    },
+    religion: {
+        type: String,
+        trim: true,
+    },
+    higherStudy: {
+        type: String,
+        trim: true,
+    },
+    permanentAddress: {
+        type: String,
+        trim: true,
+    },
+    dateOfVisit: [{
+        type: Date,
+    }],
     gender: {
         type: String,
         trim: true,
@@ -75,12 +107,18 @@ const alumniSchema = new Schema({
     },
     linkedin: {
         type: String,
-        match: [/^https?:\/\/(www\.)?linkedin\.com\/.*$/, 'Please provide a valid LinkedIn profile URL'],
+        validate: {
+            validator: (value) => !value || value === 'NA' || /^https?:\/\/(www\.)?linkedin\.com\/.*$/.test(value),
+            message: 'Please provide a valid LinkedIn profile URL'
+        },
         trim: true,
     },
     github: {
         type: String,
-        match: [/^https?:\/\/(www\.)?github\.com\/.*$/, 'Please provide a valid GitHub profile URL'],
+        validate: {
+            validator: (value) => !value || value === 'NA' || /^https?:\/\/(www\.)?github\.com\/.*$/.test(value),
+            message: 'Please provide a valid GitHub profile URL'
+        },
         trim: true,
     },
     degreeCertificate: {
