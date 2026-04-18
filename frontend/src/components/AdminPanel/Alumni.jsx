@@ -243,11 +243,11 @@ const Alumni = ({ showAll = true }) => {
     sorted.sort((a, b) => {
       switch (sortBy) {
         case 'name':
-          return a.fullName.localeCompare(b.fullName);
+          return (a.fullName || '').localeCompare(b.fullName || '');
         case 'batch':
           return b.graduationYear - a.graduationYear;
         case 'email':
-          return a.collegeEmail.localeCompare(b.collegeEmail);
+          return (a.collegeEmail || '').localeCompare(b.collegeEmail || '');
         case 'regNumber':
           return (a.registrationNumber || '').localeCompare(b.registrationNumber || '');
         default:
