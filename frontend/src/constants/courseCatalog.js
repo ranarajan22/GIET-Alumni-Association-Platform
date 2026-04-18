@@ -236,3 +236,45 @@ export function getCourseLabel(courseValue) {
   const course = COURSE_OPTIONS.find((item) => item.value === courseValue);
   return course?.label || courseValue || 'NA';
 }
+
+function uniqueOptions(options) {
+  const seen = new Set();
+  return options.filter((option) => {
+    const key = String(option.value || '').trim().toUpperCase();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export function mergeCourseOptions(facetValues = []) {
+  const catalogOptions = COURSE_OPTIONS.map((course) => ({
+    value: course.value,
+    label: course.label
+  }));
+
+  const facetOptions = (facetValues || [])
+    .filter(Boolean)
+    .map((value) => ({
+      value,
+      label: getCourseLabel(value)
+    }));
+
+  return uniqueOptions([...catalogOptions, ...facetOptions]).sort((left, right) => left.label.localeCompare(right.label));
+}
+
+export function mergeBranchOptions(courseValue, facetValues = []) {
+  const catalogOptions = getBranchOptions(courseValue).map((branch) => ({
+    value: branch.value,
+    label: branch.label
+  }));
+
+  const facetOptions = (facetValues || [])
+    .filter(Boolean)
+    .map((value) => ({
+      value,
+      label: getBranchLabel(courseValue, value)
+    }));
+
+  return uniqueOptions([...catalogOptions, ...facetOptions]).sort((left, right) => left.label.localeCompare(right.label));
+}

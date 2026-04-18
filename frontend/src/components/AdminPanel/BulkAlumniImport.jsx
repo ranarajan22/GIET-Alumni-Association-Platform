@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
+import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 function BulkAlumniImport() {
   const [file, setFile] = useState(null);
@@ -34,8 +34,8 @@ function BulkAlumniImport() {
     fetchHistory();
   }, []);
 
-  const courseGroups = useMemo(() => getAllCourseOptions(), []);
-  const branchOptions = useMemo(() => getBranchOptions(defaultCourse), [defaultCourse]);
+  const courseOptions = useMemo(() => mergeCourseOptions(), []);
+  const branchOptions = useMemo(() => mergeBranchOptions(defaultCourse), [defaultCourse]);
 
   useEffect(() => {
     if (branchOptions.length && !branchOptions.some((branch) => branch.value === defaultBranch)) {
@@ -238,12 +238,8 @@ function BulkAlumniImport() {
           onChange={(e) => setDefaultCourse(e.target.value)}
           className="md:col-span-2 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-slate-100 focus:outline-none focus:border-cyan-500"
         >
-          {courseGroups.map((group) => (
-            <optgroup key={group.label} label={group.label}>
-              {group.courses.map((course) => (
-                <option key={course.value} value={course.value}>{course.label}</option>
-              ))}
-            </optgroup>
+          {courseOptions.map((course) => (
+            <option key={course.value} value={course.value}>{course.label}</option>
           ))}
         </select>
 

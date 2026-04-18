@@ -3,7 +3,7 @@ import axios from 'axios';
 import { User, MessageSquare, Mail, BookOpen, Briefcase, Link as LinkIcon, Github, Award, Code } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 import AlumniCard from './AlumniCard';
-import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../constants/courseCatalog';
+import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../constants/courseCatalog';
 
 const Network = ({ onChatClick, userRole = null }) => {
   const [alumni, setAlumni] = useState([]);
@@ -20,8 +20,10 @@ const Network = ({ onChatClick, userRole = null }) => {
   // Determine role from prop or localStorage
   const role = userRole || localStorage.getItem("userRole");
   const isAlumni = role === 'alumni';
-  const courseGroups = getAllCourseOptions();
-  const branchOptions = getBranchOptions(selectedCourse);
+
+  const currentList = isAlumni ? students : alumni;
+  const courseOptions = mergeCourseOptions(currentList.map((person) => person.course));
+  const branchOptions = mergeBranchOptions(selectedCourse, currentList.map((person) => person.branch || person.fieldOfStudy));
 
   const handleChatClick = (person) => {
     // Call the parent's onChatClick callback
@@ -139,12 +141,8 @@ const Network = ({ onChatClick, userRole = null }) => {
             className="w-full p-2.5 sm:p-3 text-sm sm:text-base border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-900 dark:text-white rounded-lg"
           >
             <option value="">All Courses</option>
-            {courseGroups.map((group) => (
-              <optgroup key={group.label} label={group.label}>
-                {group.courses.map((course) => (
-                  <option key={course.value} value={course.value}>{course.label}</option>
-                ))}
-              </optgroup>
+            {courseOptions.map((course) => (
+              <option key={course.value} value={course.value}>{course.label}</option>
             ))}
           </select>
           <select

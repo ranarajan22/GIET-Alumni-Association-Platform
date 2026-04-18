@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Users, AlertTriangle, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
-import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
+import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 function Students() {
   const [students, setStudents] = useState([]);
@@ -15,8 +15,11 @@ function Students() {
   const [sortBy, setSortBy] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const courseGroups = useMemo(() => getAllCourseOptions(), []);
-  const branchOptions = useMemo(() => getBranchOptions(filterCourse), [filterCourse]);
+  const courseOptions = useMemo(() => mergeCourseOptions(students.map((student) => student.course)), [students]);
+  const branchOptions = useMemo(
+    () => mergeBranchOptions(filterCourse, students.map((student) => student.branch || student.fieldOfStudy)),
+    [filterCourse, students]
+  );
 
   useEffect(() => {
     fetchStudents();
@@ -168,14 +171,10 @@ function Students() {
           className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500"
         >
           <option value="">All Courses</option>
-          {courseGroups.map((group) => (
-            <optgroup key={group.label} label={group.label}>
-              {group.courses.map((course) => (
-                <option key={course.value} value={course.value}>
-                  {course.label}
-                </option>
-              ))}
-            </optgroup>
+          {courseOptions.map((course) => (
+            <option key={course.value} value={course.value}>
+              {course.label}
+            </option>
           ))}
         </select>
 

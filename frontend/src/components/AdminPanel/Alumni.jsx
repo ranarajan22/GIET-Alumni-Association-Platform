@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X } from 'lucide-react';
-import { getAllCourseOptions, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
+import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 const Alumni = ({ showAll = true }) => {
   const [alumniList, setAlumni] = useState([]);
@@ -31,8 +31,11 @@ const Alumni = ({ showAll = true }) => {
     return parsed.toLocaleDateString();
   };
 
-  const courseGroups = useMemo(() => getAllCourseOptions(), []);
-  const branchOptions = useMemo(() => getBranchOptions(courseFilter), [courseFilter]);
+  const courseOptions = useMemo(() => mergeCourseOptions(alumniList.map((alumni) => alumni.course)), [alumniList]);
+  const branchOptions = useMemo(
+    () => mergeBranchOptions(courseFilter, alumniList.map((alumni) => alumni.branch || alumni.fieldOfStudy)),
+    [courseFilter, alumniList]
+  );
 
   const formatValue = (key, value, alumni) => {
     if (Array.isArray(value)) {
@@ -182,12 +185,8 @@ const Alumni = ({ showAll = true }) => {
         </select>
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
           <option value="">All Courses</option>
-          {courseGroups.map((group) => (
-            <optgroup key={group.label} label={group.label}>
-              {group.courses.map((course) => (
-                <option key={course.value} value={course.value}>{course.label}</option>
-              ))}
-            </optgroup>
+          {courseOptions.map((course) => (
+            <option key={course.value} value={course.value}>{course.label}</option>
           ))}
         </select>
         <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
