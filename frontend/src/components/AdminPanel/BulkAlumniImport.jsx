@@ -36,6 +36,11 @@ function BulkAlumniImport() {
 
   const courseOptions = useMemo(() => mergeCourseOptions(), []);
   const branchOptions = useMemo(() => mergeBranchOptions(defaultCourse), [defaultCourse]);
+  const selectedCourseLabel = useMemo(() => getCourseLabel(defaultCourse), [defaultCourse]);
+  const selectedBranchLabel = useMemo(
+    () => getBranchLabel(defaultCourse, defaultBranch),
+    [defaultCourse, defaultBranch]
+  );
 
   useEffect(() => {
     if (branchOptions.length && !branchOptions.some((branch) => branch.value === defaultBranch)) {
@@ -89,9 +94,6 @@ function BulkAlumniImport() {
   };
 
   const downloadTemplate = (mode = 'required') => {
-    const selectedCourseLabel = getCourseLabel(defaultCourse);
-    const selectedBranchLabel = getBranchLabel(defaultCourse, defaultBranch);
-
     const requiredHeaders = [
       'Roll No',
       'Name of the Alumni',
