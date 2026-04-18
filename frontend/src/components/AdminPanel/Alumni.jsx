@@ -259,18 +259,19 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
   }, [filteredAlumni, sortBy]);
 
   const skeletons = Array.from({ length: 3 });
+  const isDark = theme === 'dark';
 
   return (
-    <section className={theme === 'dark' ? 'space-y-4' : 'space-y-4 text-slate-900'}>
+    <section className={isDark ? 'space-y-4' : 'space-y-4 text-slate-900'}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Complete List</p>
-          <h2 className={theme === 'dark' ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>All Alumni</h2>
-          <p className={theme === 'dark' ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
+          <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>All Alumni</h2>
+          <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
             {alumniList.length} total • {filteredAlumni.length} matching current filters
           </p>
         </div>
-        <Shield className={theme === 'dark' ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600'} />
+        <Shield className={isDark ? 'w-6 h-6 text-cyan-400' : 'w-6 h-6 text-cyan-600'} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -280,22 +281,22 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name/email/roll"
-            className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100"
+            className={isDark ? 'w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}
           />
         </div>
-        <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
+        <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
           <option value="">All Batches ({filterCounters.allBatchesCount})</option>
           {batches.map((batch) => (
             <option key={batch} value={batch}>{batch} ({filterCounters.batchCounts[String(batch)] || 0})</option>
           ))}
         </select>
-        <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
+        <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
           <option value="">All Courses ({filterCounters.allCoursesCount})</option>
           {courseOptions.map((course) => (
             <option key={course.value} value={course.value}>{course.label} ({filterCounters.courseCounts[course.value] || 0})</option>
           ))}
         </select>
-        <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100">
+        <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
           <option value="">All Branches ({filterCounters.allBranchesCount})</option>
           {branchOptions.map((branch) => (
             <option key={branch.value} value={branch.value}>{branch.label} ({filterCounters.branchCounts[branch.value] || 0})</option>
@@ -304,7 +305,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 flex items-center gap-2">
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 flex items-center gap-2' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 flex items-center gap-2'}>
           <ArrowUpDown className="w-4 h-4 inline" />
           <option value="name">Sort by Name</option>
           <option value="batch">Sort by Batch (Newest)</option>
@@ -315,7 +316,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <button
             onClick={() => setLayoutMode('vertical')}
             className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
-              layoutMode === 'vertical' ? 'bg-emerald-600 border border-emerald-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+              layoutMode === 'vertical' ? 'bg-emerald-600 border border-emerald-500 text-white' : isDark ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600' : 'bg-white border border-slate-300 text-slate-700 hover:border-slate-400'
             }`}
           >
             <Rows3 className="w-3 h-3" /> Vertical
@@ -323,7 +324,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <button
             onClick={() => setLayoutMode('horizontal')}
             className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
-              layoutMode === 'horizontal' ? 'bg-emerald-600 border border-emerald-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+              layoutMode === 'horizontal' ? 'bg-emerald-600 border border-emerald-500 text-white' : isDark ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600' : 'bg-white border border-slate-300 text-slate-700 hover:border-slate-400'
             }`}
           >
             <Columns3 className="w-3 h-3" /> Horizontal
@@ -333,7 +334,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <button
             onClick={() => setViewMode('admin')}
             className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
-              viewMode === 'admin' ? 'bg-cyan-600 border border-cyan-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+              viewMode === 'admin' ? 'bg-cyan-600 border border-cyan-500 text-white' : isDark ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600' : 'bg-white border border-slate-300 text-slate-700 hover:border-slate-400'
             }`}
           >
             <Eye className="w-3 h-3" /> Admin View
@@ -341,7 +342,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <button
             onClick={() => setViewMode('network')}
             className={`flex-1 px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition ${
-              viewMode === 'network' ? 'bg-purple-600 border border-purple-500 text-white' : 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600'
+              viewMode === 'network' ? 'bg-purple-600 border border-purple-500 text-white' : isDark ? 'bg-slate-800 border border-slate-700 text-slate-300 hover:border-slate-600' : 'bg-white border border-slate-300 text-slate-700 hover:border-slate-400'
             }`}
           >
             <EyeOff className="w-3 h-3" /> Network View
@@ -350,14 +351,14 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       </div>
 
       {resetInfo && (
-        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-sm">
+        <div className={isDark ? 'p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 text-sm' : 'p-3 bg-amber-100 border border-amber-300 rounded-xl text-amber-800 text-sm'}>
           Temporary password reset for {resetInfo.fullName} ({resetInfo.registrationNumber}):
           <span className="font-bold ml-2">{resetInfo.temporaryPassword}</span>
         </div>
       )}
 
       {visitInfo && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-200 text-sm">
+        <div className={isDark ? 'p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-200 text-sm' : 'p-3 bg-emerald-100 border border-emerald-300 rounded-xl text-emerald-800 text-sm'}>
           {visitInfo}
         </div>
       )}
@@ -365,7 +366,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={() => setBatchFilter('')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${!batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${!batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border border-slate-300 text-slate-700'}`}
         >
           All Years ({filterCounters.allBatchesCount})
         </button>
@@ -373,7 +374,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <button
             key={year}
             onClick={() => setBatchFilter(String(year))}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${String(year) === batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${String(year) === batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border border-slate-300 text-slate-700'}`}
           >
             {year} ({filterCounters.batchCounts[String(year)] || 0})
           </button>
@@ -383,15 +384,15 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {skeletons.map((_, idx) => (
-            <div key={idx} className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl animate-pulse space-y-3">
+            <div key={idx} className={isDark ? 'p-4 bg-slate-900/60 border border-slate-800 rounded-2xl animate-pulse space-y-3' : 'p-4 bg-white border border-slate-200 rounded-2xl animate-pulse space-y-3'}>
               <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-full bg-slate-800" />
+                <div className={isDark ? 'w-14 h-14 rounded-full bg-slate-800' : 'w-14 h-14 rounded-full bg-slate-200'} />
                 <div className="flex-1 space-y-2">
-                  <div className="h-3 bg-slate-800 rounded" />
-                  <div className="h-3 bg-slate-800 rounded w-1/2" />
+                  <div className={isDark ? 'h-3 bg-slate-800 rounded' : 'h-3 bg-slate-200 rounded'} />
+                  <div className={isDark ? 'h-3 bg-slate-800 rounded w-1/2' : 'h-3 bg-slate-200 rounded w-1/2'} />
                 </div>
               </div>
-              <div className="h-9 bg-slate-800 rounded" />
+              <div className={isDark ? 'h-9 bg-slate-800 rounded' : 'h-9 bg-slate-200 rounded'} />
             </div>
           ))}
         </div>
@@ -401,8 +402,8 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           {error}
         </div>
       ) : filteredAlumni.length === 0 ? (
-        <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-slate-300">
-          <Shield className="w-8 h-8 mx-auto text-slate-500 mb-2" />
+        <div className={isDark ? 'p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-slate-300' : 'p-6 bg-white border border-slate-200 rounded-2xl text-center text-slate-700'}>
+          <Shield className={isDark ? 'w-8 h-8 mx-auto text-slate-500 mb-2' : 'w-8 h-8 mx-auto text-slate-500 mb-2'} />
           No alumni found for selected filters.
         </div>
       ) : (
@@ -410,7 +411,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           {sortedAlumni.map((alumni) => (
             <div
               key={alumni._id}
-              className={`p-4 rounded-xl shadow-lg border ${viewMode === 'network' ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-900/60 border-slate-800'} ${layoutMode === 'horizontal' ? 'flex flex-col md:flex-row md:items-start md:justify-between md:gap-4' : ''}`}
+              className={`p-4 rounded-xl shadow-lg border ${viewMode === 'network' ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200' : isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'} ${layoutMode === 'horizontal' ? 'flex flex-col md:flex-row md:items-start md:justify-between md:gap-4' : ''}`}
             >
               <div className={`flex items-start gap-3 mb-3 ${layoutMode === 'horizontal' ? 'md:mb-0 md:flex-1' : ''}`}>
                 <img
@@ -419,24 +420,24 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                   className="w-12 h-12 rounded-full object-cover border border-slate-700 flex-shrink-0"
                 />
                 <div className={`min-w-0 flex-1 ${layoutMode === 'horizontal' ? 'md:max-w-xs' : ''}`}>
-                  <h3 className="font-bold text-sm text-white truncate">{alumni.fullName || 'NA'}</h3>
-                  {viewMode === 'admin' && <p className="text-xs text-slate-400 truncate">{alumni.registrationNumber || 'NA'}</p>}
+                  <h3 className={isDark ? 'font-bold text-sm text-white truncate' : 'font-bold text-sm text-slate-900 truncate'}>{alumni.fullName || 'NA'}</h3>
+                  {viewMode === 'admin' && <p className={isDark ? 'text-xs text-slate-400 truncate' : 'text-xs text-slate-600 truncate'}>{alumni.registrationNumber || 'NA'}</p>}
                 </div>
               </div>
 
               {viewMode === 'admin' ? (
                 <div className={layoutMode === 'horizontal' ? 'md:flex md:items-center md:gap-6 md:flex-1' : ''}>
-                  <div className={`mt-2 text-xs text-slate-400 space-y-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[220px]' : ''}`}>
-                    <p>Year: <span className="text-slate-200">{alumni.graduationYear || 'NA'}</span></p>
-                    <p>Course: <span className="text-slate-200">{getCourseLabel(alumni.course)}</span></p>
-                    <p>Branch: <span className="text-slate-200">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
-                    <p>Email: <span className="text-slate-200 text-xs truncate">{alumni.collegeEmail || 'NA'}</span></p>
+                  <div className={`mt-2 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'} space-y-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[220px]' : ''}`}>
+                    <p>Year: <span className={isDark ? 'text-slate-200' : 'text-slate-800'}>{alumni.graduationYear || 'NA'}</span></p>
+                    <p>Course: <span className={isDark ? 'text-slate-200' : 'text-slate-800'}>{getCourseLabel(alumni.course)}</span></p>
+                    <p>Branch: <span className={isDark ? 'text-slate-200' : 'text-slate-800'}>{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
+                    <p>Email: <span className={isDark ? 'text-slate-200 text-xs truncate' : 'text-slate-800 text-xs truncate'}>{alumni.collegeEmail || 'NA'}</span></p>
                   </div>
 
                   <div className={`mt-3 grid grid-cols-1 gap-2 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[170px]' : ''}`}>
                     <button
                       onClick={() => setSelectedAlumni(alumni)}
-                      className="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1"
+                      className={isDark ? 'w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1' : 'w-full px-3 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-xs font-semibold text-slate-900 inline-flex items-center justify-center gap-1'}
                     >
                       <Eye className="w-3 h-3" />
                       View Details
@@ -467,16 +468,16 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                     </button>
                   </div>
 
-                  <div className={`mt-2 text-[11px] text-slate-500 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[140px]' : ''}`}>
+                  <div className={`mt-2 text-[11px] ${isDark ? 'text-slate-500' : 'text-slate-600'} ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[140px]' : ''}`}>
                     Last Visit: {formatDate((alumni.dateOfVisit || [])[alumni.dateOfVisit?.length - 1])}
                   </div>
                 </div>
               ) : (
                 <div className={layoutMode === 'horizontal' ? 'md:flex md:items-center md:gap-6 md:flex-1' : ''}>
-                  <div className={`mt-2 text-xs text-slate-300 space-y-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[220px]' : ''}`}>
-                    <p>Batch: <span className="text-slate-100 font-semibold">{alumni.graduationYear || 'NA'}</span></p>
-                    <p>Course: <span className="text-slate-100">{getCourseLabel(alumni.course)}</span></p>
-                    <p>Branch: <span className="text-slate-100">{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
+                  <div className={`mt-2 text-xs ${isDark ? 'text-slate-300' : 'text-slate-700'} space-y-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:min-w-[220px]' : ''}`}>
+                    <p>Batch: <span className={isDark ? 'text-slate-100 font-semibold' : 'text-slate-900 font-semibold'}>{alumni.graduationYear || 'NA'}</span></p>
+                    <p>Course: <span className={isDark ? 'text-slate-100' : 'text-slate-900'}>{getCourseLabel(alumni.course)}</span></p>
+                    <p>Branch: <span className={isDark ? 'text-slate-100' : 'text-slate-900'}>{getBranchLabel(alumni.course, alumni.branch || alumni.fieldOfStudy)}</span></p>
                   </div>
 
                   <div className={`mt-3 pt-3 border-t border-slate-700 ${layoutMode === 'horizontal' ? 'md:mt-0 md:pt-0 md:border-t-0 md:min-w-[160px]' : ''}`}>
@@ -496,7 +497,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
                   <button
                     onClick={() => setSelectedAlumni(alumni)}
-                    className={`w-full mt-3 px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center justify-center gap-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:w-auto md:min-w-[150px]' : ''}`}
+                    className={`w-full mt-3 px-3 py-2 rounded-lg ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-slate-200 hover:bg-slate-300 text-slate-900'} text-xs font-semibold inline-flex items-center justify-center gap-1 ${layoutMode === 'horizontal' ? 'md:mt-0 md:w-auto md:min-w-[150px]' : ''}`}
                   >
                     <Eye className="w-3 h-3" />
                     View Profile

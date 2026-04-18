@@ -64,13 +64,13 @@ function ContactMessages({ theme = 'dark' }) {
   const getStatusColor = (status) => {
     switch (status) {
       case 'new':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/50';
+        return isDark ? 'bg-blue-500/20 text-blue-300 border-blue-500/50' : 'bg-blue-100 text-blue-700 border-blue-300';
       case 'read':
-        return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50';
+        return isDark ? 'bg-yellow-500/20 text-yellow-300 border-yellow-500/50' : 'bg-yellow-100 text-yellow-700 border-yellow-300';
       case 'responded':
-        return 'bg-green-500/20 text-green-300 border-green-500/50';
+        return isDark ? 'bg-green-500/20 text-green-300 border-green-500/50' : 'bg-green-100 text-green-700 border-green-300';
       default:
-        return 'bg-slate-500/20 text-slate-300';
+        return isDark ? 'bg-slate-500/20 text-slate-300' : 'bg-slate-100 text-slate-700';
     }
   };
 
@@ -146,7 +146,7 @@ function ContactMessages({ theme = 'dark' }) {
                   {contact.status !== 'responded' && (
                     <button
                       onClick={() => handleMarkAsResponded(contact._id)}
-                      className="p-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg transition"
+                      className={isDark ? 'p-2 bg-green-500/20 hover:bg-green-500/30 text-green-300 rounded-lg transition' : 'p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition'}
                       title="Mark as Responded"
                     >
                       <Check size={18} />
@@ -154,7 +154,7 @@ function ContactMessages({ theme = 'dark' }) {
                   )}
                   <button
                     onClick={() => handleDelete(contact._id)}
-                    className="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition"
+                    className={isDark ? 'p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition' : 'p-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg transition'}
                     title="Delete"
                   >
                     <Trash2 size={18} />

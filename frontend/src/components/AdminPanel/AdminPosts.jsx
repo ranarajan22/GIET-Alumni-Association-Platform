@@ -79,7 +79,7 @@ const AdminPosts = ({ view, theme = 'dark' }) => {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded bg-red-500/10 border border-red-500/30 text-red-200 text-sm">{error}</div>
+        <div className={isDark ? 'mb-4 p-3 rounded bg-red-500/10 border border-red-500/30 text-red-200 text-sm' : 'mb-4 p-3 rounded bg-red-100 border border-red-300 text-red-700 text-sm'}>{error}</div>
       )}
 
       {loading ? (
@@ -97,7 +97,7 @@ const AdminPosts = ({ view, theme = 'dark' }) => {
                   {item.description && <p className={isDark ? 'text-sm text-slate-400 line-clamp-3' : 'text-sm text-slate-700 line-clamp-3'}>{item.description}</p>}
                   {item.date && <p className={isDark ? 'text-xs text-slate-500' : 'text-xs text-slate-600'}>Date: {new Date(item.date).toLocaleDateString()}</p>}
                   {item.postedAt && <p className={isDark ? 'text-xs text-slate-500' : 'text-xs text-slate-600'}>Posted: {new Date(item.postedAt).toLocaleDateString()}</p>}
-                  {item.isClosed && <span className="inline-block mt-2 px-2 py-1 text-xs rounded bg-red-500/20 text-red-300">Closed</span>}
+                  {item.isClosed && <span className={isDark ? 'inline-block mt-2 px-2 py-1 text-xs rounded bg-red-500/20 text-red-300' : 'inline-block mt-2 px-2 py-1 text-xs rounded bg-red-100 text-red-700'}>Closed</span>}
                 </div>
               </div>
 
@@ -107,7 +107,7 @@ const AdminPosts = ({ view, theme = 'dark' }) => {
                     href={item.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 hover:bg-cyan-500/30"
+                    className={isDark ? 'flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 hover:bg-cyan-500/30' : 'flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-cyan-100 text-cyan-800 border border-cyan-300 hover:bg-cyan-200'}
                   >
                     <ExternalLink className="w-4 h-4" />
                     Open Link
@@ -115,7 +115,7 @@ const AdminPosts = ({ view, theme = 'dark' }) => {
                 )}
                 <button
                   onClick={() => handleDelete(item._id)}
-                  className="px-3 py-2 rounded-lg bg-red-500/20 text-red-200 border border-red-500/40 hover:bg-red-500/30 inline-flex items-center gap-2"
+                  className={isDark ? 'px-3 py-2 rounded-lg bg-red-500/20 text-red-200 border border-red-500/40 hover:bg-red-500/30 inline-flex items-center gap-2' : 'px-3 py-2 rounded-lg bg-red-100 text-red-700 border border-red-300 hover:bg-red-200 inline-flex items-center gap-2'}
                 >
                   <Trash2 className="w-4 h-4" /> Delete
                 </button>
