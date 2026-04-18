@@ -591,13 +591,16 @@ const importAlumniFromExcel = async (req, res) => {
   } catch (error) {
     console.error('Bulk alumni import failed:', error);
     try {
+      const failureReason = error?.message || 'Import failed before row validation';
       await ImportJob.create({
         fileName: file?.originalname || 'unknown',
         mode: mode === 'commit' ? 'commit' : 'preview',
         status: 'failed',
         uploadedBy: req.user?._id,
         uploadedByName: req.user?.fullName || 'Admin',
-        errorMessage: error.message
+        errorMessage: failureReason,
+        errorCount: 1,
+        rowErrors: [{ row: 0, rollNo: '', reason: failureReason }]
       });
     } catch (logError) {
       console.error('Failed to persist import failure log:', logError.message);

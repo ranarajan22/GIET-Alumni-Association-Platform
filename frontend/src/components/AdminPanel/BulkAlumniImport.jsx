@@ -175,18 +175,26 @@ function BulkAlumniImport() {
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.get(`${API_BASE_URL}/admin/import-history/${jobId}`, { headers });
-      const rows = response.data?.job?.rowErrors || [];
+      const job = response.data?.job || {};
+      const rows = Array.isArray(job.rowErrors) ? job.rowErrors : [];
+      const fallbackRows = job.errorMessage ? [{ row: 0, rollNo: '', reason: job.errorMessage }] : [];
+      const exportRows = rows.length ? rows : fallbackRows;
 
-      if (!rows.length) {
+      if (!exportRows.length) {
         setError('No failed rows to export for this import job.');
         return;
       }
 
-      const csvHeaders = ['row', 'rollNo', 'reason'];
-      const csvLines = rows.map((r) => [r.row || '', r.rollNo || '', (r.reason || '').replace(/,/g, ';')]);
-      const csv = [csvHeaders.join(','), ...csvLines.map((line) => line.join(','))].join('\n');
+      const escapeCsv = (value) => {
+        const text = String(value ?? '').replace(/\r?\n/g, ' ');
+        return /[",]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      };
 
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const csvHeaders = ['row', 'rollNo', 'reason'];
+      const csvLines = exportRows.map((r) => [r.row || '', r.rollNo || '', r.reason || '']);
+      const safeCsv = [csvHeaders.map(escapeCsv).join(','), ...csvLines.map((line) => line.map(escapeCsv).join(','))].join('\n');
+
+      const blob = new Blob([safeCsv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -385,7 +393,7 @@ function BulkAlumniImport() {
                     <td className="px-3 py-2">{job.errorCount || 0}</td>
                     <td className="px-3 py-2">
                       <button
-                        disabled={!job.errorCount}
+                        disabled={!(Number(job.errorCount) > 0 || job.status === 'failed')}
                         onClick={() => exportFailedRows(job._id, job.fileName)}
                         className="px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-white"
                       >
