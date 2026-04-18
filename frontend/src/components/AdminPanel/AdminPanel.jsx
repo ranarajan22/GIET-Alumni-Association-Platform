@@ -12,6 +12,7 @@ import ContactMessages from './ContactMessages';
 import SubscribersList from './SubscribersList';
 import AdminPosts from './AdminPosts';
 import BulkAlumniImport from './BulkAlumniImport';
+import AdminViewErrorBoundary from './AdminViewErrorBoundary';
 import { assets } from '../../assets/assets';
 
 function AdminPanel() {
@@ -224,7 +225,11 @@ function AdminPanel() {
                     )}
                     {currentView === 'students' && <Students />}
                     {currentView === 'alumni' && <Alumni />}
-                    {currentView === 'import' && <BulkAlumniImport />}
+                    {currentView === 'import' && (
+                        <AdminViewErrorBoundary onReset={() => setCurrentView('all')}>
+                            <BulkAlumniImport />
+                        </AdminViewErrorBoundary>
+                    )}
                     {currentView === 'all-alumni' && <Alumni showAll={true} />}
                     {currentView === 'messages' && <ContactMessages />}
                     {currentView === 'subscribers' && <SubscribersList />}
