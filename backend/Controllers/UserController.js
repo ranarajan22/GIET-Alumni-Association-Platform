@@ -17,6 +17,15 @@ const NETWORK_STUDENT_FIELDS = [
     'createdAt'
 ].join(' ');
 
+function attachStudentIdentityFields(record) {
+    const registrationNumber = record?.usn || '';
+    return {
+        ...record,
+        registrationNumber,
+        rollNumber: registrationNumber
+    };
+}
+
 const getAllStudents = async (req, res) => {
   try {
                 const filter = { role: 'student' };
@@ -36,8 +45,8 @@ const getAllStudents = async (req, res) => {
                 }
 
                 // Student network list should expose only required profile fields + social links.
-                const students = await User.find(filter).select(NETWORK_STUDENT_FIELDS);
-    res.status(200).json({ students });
+                const students = await User.find(filter).select(NETWORK_STUDENT_FIELDS).lean();
+    res.status(200).json({ students: students.map(attachStudentIdentityFields) });
   } catch (error) {
     console.error('Error fetching students:', error.message);
     if (!res.headersSent) {

@@ -192,11 +192,11 @@ function Students({ theme = 'dark' }) {
   const gradYears = [...new Set(students.map((s) => s.graduationYear))].filter(Boolean).sort().reverse();
 
   const handleExportCSV = () => {
-    const headers = ['Name', 'Email', 'USN', 'Course', 'Branch', 'Grad Year', 'Joined'];
+    const headers = ['Name', 'Email', 'Registration Number', 'Course', 'Branch', 'Grad Year', 'Joined'];
     const rows = filteredStudents.map((s) => [
       s.fullName,
       s.collegeEmail,
-      s.usn,
+      s.registrationNumber || s.usn,
       getCourseLabel(s.course),
       getBranchLabel(s.course, s.branch || s.fieldOfStudy),
       s.graduationYear,
@@ -254,7 +254,7 @@ function Students({ theme = 'dark' }) {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
             type="text"
-            placeholder="Search by name, email, or USN..."
+            placeholder="Search by name, email, or Registration Number..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -349,7 +349,7 @@ function Students({ theme = 'dark' }) {
                   <tr>
                     <th className="px-4 py-3">Name</th>
                     <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">USN</th>
+                    <th className="px-4 py-3">Registration Number</th>
                     <th className="px-4 py-3">Course</th>
                     <th className="px-4 py-3">Branch</th>
                     <th className="px-4 py-3">Grad Year</th>
@@ -361,7 +361,7 @@ function Students({ theme = 'dark' }) {
                     <tr key={s._id} className={isDark ? 'hover:bg-slate-800/60 transition-colors' : 'hover:bg-slate-50 transition-colors'}>
                       <td className={isDark ? 'px-4 py-3 font-semibold text-slate-100' : 'px-4 py-3 font-semibold text-slate-900'}>{s.fullName}</td>
                       <td className={isDark ? 'px-4 py-3 text-slate-300 text-xs sm:text-sm' : 'px-4 py-3 text-slate-700 text-xs sm:text-sm'}>{s.collegeEmail}</td>
-                      <td className={isDark ? 'px-4 py-3 text-slate-400' : 'px-4 py-3 text-slate-600'}>{s.usn}</td>
+                      <td className={isDark ? 'px-4 py-3 text-slate-400' : 'px-4 py-3 text-slate-600'}>{s.registrationNumber || s.usn || 'NA'}</td>
                       <td className="px-4 py-3">{getCourseLabel(s.course)}</td>
                       <td className="px-4 py-3">{getBranchLabel(s.course, s.branch || s.fieldOfStudy)}</td>
                       <td className="px-4 py-3">{s.graduationYear}</td>

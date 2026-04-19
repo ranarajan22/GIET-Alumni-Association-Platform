@@ -11,6 +11,7 @@ const NETWORK_ALUMNI_FIELDS = [
   'graduationYear',
   'collegeEmail',
   'registrationNumber',
+  'usn',
   'course',
   'branch',
   'fieldOfStudy',
@@ -23,6 +24,18 @@ const NETWORK_ALUMNI_FIELDS = [
 function normalizeText(value) {
   if (value === null || value === undefined) return '';
   return String(value).trim();
+}
+
+function attachIdentityFields(record) {
+  const rollNumber = record?.registrationNumber || record?.usn || '';
+  const registrationNumber = record?.usn || record?.registrationNumber || '';
+
+  return {
+    ...record,
+    rollNumber,
+    registrationNumber,
+    usn: registrationNumber
+  };
 }
 
 function buildDirectoryFilter(query = {}) {
@@ -39,7 +52,8 @@ function buildDirectoryFilter(query = {}) {
       ...(filter.$or || []),
       { fullName: searchRegex },
       { collegeEmail: searchRegex },
-      { registrationNumber: searchRegex }
+      { registrationNumber: searchRegex },
+      { usn: searchRegex }
     ];
   }
 
@@ -50,8 +64,8 @@ const getAllAlumni = async (req, res) => {
   try {
     const filter = buildDirectoryFilter(req.query);
     // Network directory should expose only required profile fields + social links.
-    const alumni = await Alumni.find(filter).select(NETWORK_ALUMNI_FIELDS);
-    res.status(200).json({ alumni });
+    const alumni = await Alumni.find(filter).select(NETWORK_ALUMNI_FIELDS).lean();
+    res.status(200).json({ alumni: alumni.map(attachIdentityFields) });
   } catch (error) {
     console.error('Error fetching alumni:', error);
     res.status(500).json({ error: 'Failed to retrieve alumni' });
@@ -104,7 +118,7 @@ const getAlumniProfile = async (req, res) => {
       fullName: !!alumni.fullName,
       graduationYear: !!alumni.graduationYear,
       course: !!alumni.course,
-      usn: !!alumni.usn,
+      registrationNumber: !!(alumni.usn || alumni.registrationNumber),
       fieldOfStudy: !!alumni.fieldOfStudy,
       profilePhoto: !!alumni.profilePhoto,
     };
@@ -113,7 +127,7 @@ const getAlumniProfile = async (req, res) => {
       fullName: 'Full Name',
       graduationYear: 'Graduation Year',
       course: 'Course',
-      usn: 'Registration number',
+      registrationNumber: 'Registration Number',
       fieldOfStudy: 'Branch',
       profilePhoto: 'Profile Photo',
     };
@@ -126,7 +140,7 @@ const getAlumniProfile = async (req, res) => {
       .map(([key]) => friendlyNames[key] || key);
 
     res.status(200).json({
-      alumni: {
+      alumni: attachIdentityFields({
         _id: alumni._id,
         fullName: alumni.fullName,
         graduationYear: alumni.graduationYear,
@@ -155,7 +169,7 @@ const getAlumniProfile = async (req, res) => {
         dateOfVisit: alumni.dateOfVisit || [],
         createdAt: alumni.createdAt,
         followers: alumni.followers || [],
-      },
+      }),
       profileCompleteness: {
         percentage: completeness,
         fields: profileFields,
@@ -234,6 +248,8 @@ const updateAlumniProfile = async (req, res) => {
       graduationYear,
       course,
       usn,
+      registrationNumber,
+      rollNumber,
       fieldOfStudy,
       profilePhoto,
       degreeCertificate,
@@ -271,8 +287,9 @@ const updateAlumniProfile = async (req, res) => {
       update.fieldOfStudy = normalizedField;
       update.branch = normalizedField;
     }
-    if (usn !== undefined) {
-      const normalizedUsn = normalizeText(usn) || 'NA';
+    const identityInput = usn !== undefined ? usn : (registrationNumber !== undefined ? registrationNumber : rollNumber);
+    if (identityInput !== undefined) {
+      const normalizedUsn = normalizeText(identityInput) || 'NA';
       update.usn = normalizedUsn;
       update.registrationNumber = normalizedUsn;
     }
@@ -314,7 +331,7 @@ const updateAlumniProfile = async (req, res) => {
 
     res.status(200).json({ 
       message: 'Profile updated successfully', 
-      alumni: {
+      alumni: attachIdentityFields({
         _id: alumni._id,
         fullName: alumni.fullName,
         graduationYear: alumni.graduationYear,
@@ -342,7 +359,7 @@ const updateAlumniProfile = async (req, res) => {
         currentLocation: alumni.currentLocation,
         dateOfVisit: alumni.dateOfVisit || [],
         degreeCertificate: alumni.degreeCertificate,
-      }
+      })
     });
   } catch (error) {
     console.error('Error updating alumni profile:', error);

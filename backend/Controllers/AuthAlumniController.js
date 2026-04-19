@@ -27,6 +27,7 @@ const loginAlumni = async (req, res) => {
         const alumni = await Alumni.findOne({
             $or: [
                 { registrationNumber: loginIdentifier },
+                { usn: loginIdentifier },
                 { collegeEmail: loginIdentifier.toLowerCase() }
             ]
         });

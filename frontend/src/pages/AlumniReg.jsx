@@ -40,7 +40,7 @@ function AlumniReg() {
     if (!graduationYear) newErrors.graduationYear = 'Graduation year is required';
     if (!collegeEmail) newErrors.collegeEmail = 'College email is required';
     else if (!emailRegex.test(collegeEmail)) newErrors.collegeEmail = 'Enter a valid email';
-    if (!registrationNumber) newErrors.registrationNumber = 'Registration number is required';
+    if (!registrationNumber) newErrors.registrationNumber = 'Roll number is required';
     if (!password) newErrors.password = 'Password is required';
     else if (password.length < 8) newErrors.password = 'Minimum 8 characters';
     if (!confirmPassword) newErrors.confirmPassword = 'Confirm your password';
@@ -143,14 +143,14 @@ function AlumniReg() {
             {errors.collegeEmail && <p className="text-rose-400 text-xs">{errors.collegeEmail}</p>}
           </div>
 
-          <div className="flex flex-col gap-2">            <label htmlFor="registrationNumber" className="text-slate-300 text-sm">Registration Number</label>
+          <div className="flex flex-col gap-2">            <label htmlFor="registrationNumber" className="text-slate-300 text-sm">Roll Number</label>
             <input
               type="text"
               id="registrationNumber"
               name="registrationNumber"
               value={registrationNumber}
               onChange={(e) => setRegistrationNumber(e.target.value)}
-              placeholder="Enter your registration number"
+              placeholder="Enter your roll number"
               className="bg-slate-800 text-white border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             {errors.registrationNumber && <p className="text-rose-400 text-xs">{errors.registrationNumber}</p>}

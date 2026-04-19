@@ -315,17 +315,17 @@ const Network = ({ onChatClick, userRole = null }) => {
                           <p className="text-sm text-gray-600 dark:text-slate-400">Branch/Field not provided</p>
                         </div>
                       )}
-                      {selectedProfile.usn ? (
+                      {(selectedProfile.registrationNumber || selectedProfile.usn) ? (
                         <div className="flex items-start gap-3">
                           <Code className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
                           <div>
-                            <p className="text-xs text-gray-600 dark:text-slate-400">USN</p>
-                            <p className="text-gray-800 dark:text-white font-mono">{selectedProfile.usn}</p>
+                            <p className="text-xs text-gray-600 dark:text-slate-400">Registration Number</p>
+                            <p className="text-gray-800 dark:text-white font-mono">{selectedProfile.registrationNumber || selectedProfile.usn}</p>
                           </div>
                         </div>
                       ) : (
                         <div className="p-3 bg-gray-100 dark:bg-slate-800 rounded-lg">
-                          <p className="text-sm text-gray-600 dark:text-slate-400">USN not provided</p>
+                          <p className="text-sm text-gray-600 dark:text-slate-400">Registration Number not provided</p>
                         </div>
                       )}
                     </div>

@@ -5,6 +5,17 @@ const JobOpening = require('../Models/JobOpening');
 const Mentorship = require('../Models/Mentorship');
 const bcrypt = require('bcrypt');
 
+function normalizeIdentityFields(record) {
+  const rollNumber = record?.registrationNumber || record?.usn || '';
+  const registrationNumber = record?.usn || record?.registrationNumber || '';
+  return {
+    ...record,
+    rollNumber,
+    registrationNumber,
+    usn: registrationNumber
+  };
+}
+
 function tempPasswordFromDob(dob) {
   const date = new Date(dob);
   if (Number.isNaN(date.getTime())) return '';
@@ -18,8 +29,8 @@ function tempPasswordFromDob(dob) {
 const getAllAlumni = async (req, res) => {
   try {
     // Include certificate for admin review but exclude sensitive password hash
-    const alumni = await Alumni.find().select('-password');
-    res.status(200).json({ alumni });
+    const alumni = await Alumni.find().select('-password').lean();
+    res.status(200).json({ alumni: alumni.map(normalizeIdentityFields) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch alumni list' });
@@ -55,8 +66,13 @@ const getMetrics = async (req, res) => {
 // Students list (filter only role student)
 const getStudents = async (req, res) => {
   try {
-    const students = await User.find({ role: 'student' }).select('-password');
-    res.status(200).json({ students });
+    const students = await User.find({ role: 'student' }).select('-password').lean();
+    const normalizedStudents = students.map((student) => ({
+      ...student,
+      registrationNumber: student.usn || '',
+      rollNumber: student.usn || ''
+    }));
+    res.status(200).json({ students: normalizedStudents });
   } catch (error) {
     console.error('Error fetching students:', error);
     res.status(500).json({ error: 'Failed to fetch students' });

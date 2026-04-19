@@ -566,16 +566,16 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
       {selectedAlumni && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-          <div className="w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-slate-800 bg-slate-900 px-6 py-5">
+          <div className={isDark ? 'w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 shadow-2xl' : 'w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-2xl'}>
+            <div className={isDark ? 'flex items-start justify-between gap-4 border-b border-slate-800 bg-slate-900 px-6 py-5' : 'flex items-start justify-between gap-4 border-b border-slate-200 bg-slate-50 px-6 py-5'}>
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Alumni Details</p>
-                <h3 className="text-2xl font-bold text-white">{selectedAlumni.fullName || 'NA'}</h3>
-                <p className="text-sm text-slate-400">Registration No: {selectedAlumni.registrationNumber || selectedAlumni.usn || 'NA'}</p>
+                <p className={isDark ? 'text-xs uppercase tracking-[0.3em] text-slate-500' : 'text-xs uppercase tracking-[0.3em] text-slate-600'}>Alumni Details</p>
+                <h3 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>{selectedAlumni.fullName || 'NA'}</h3>
+                <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>Roll Number: {selectedAlumni.registrationNumber || selectedAlumni.usn || 'NA'}</p>
               </div>
               <button
                 onClick={() => setSelectedAlumni(null)}
-                className="rounded-full border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 hover:text-white"
+                className={isDark ? 'rounded-full border border-slate-700 p-2 text-slate-300 hover:bg-slate-800 hover:text-white' : 'rounded-full border border-slate-300 p-2 text-slate-600 hover:bg-slate-200 hover:text-slate-900'}
                 aria-label="Close details"
               >
                 <X className="h-4 w-4" />
@@ -584,17 +584,17 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
             <div className="max-h-[calc(90vh-88px)] overflow-y-auto p-6 space-y-6">
               <div className="grid gap-6 lg:grid-cols-[240px_1fr]">
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+                <div className={isDark ? 'rounded-2xl border border-slate-800 bg-slate-900/70 p-4' : 'rounded-2xl border border-slate-200 bg-slate-50 p-4'}>
                   <img
                     src={makeAbsoluteUrl(selectedAlumni.profilePhoto)}
                     alt={selectedAlumni.fullName}
-                    className="h-56 w-full rounded-xl object-cover border border-slate-800"
+                    className={isDark ? 'h-56 w-full rounded-xl object-cover border border-slate-800' : 'h-56 w-full rounded-xl object-cover border border-slate-200'}
                   />
-                  <div className="mt-4 space-y-2 text-sm text-slate-300">
-                    <p><span className="text-slate-500">Course:</span> {getCourseLabel(selectedAlumni.course)}</p>
-                    <p><span className="text-slate-500">Branch:</span> {getBranchLabel(selectedAlumni.course, selectedAlumni.branch || selectedAlumni.fieldOfStudy)}</p>
-                    <p><span className="text-slate-500">Batch:</span> {selectedAlumni.graduationYear || 'NA'}</p>
-                    <p><span className="text-slate-500">Import:</span> {selectedAlumni.importSource || 'Manual / legacy'}</p>
+                  <div className={isDark ? 'mt-4 space-y-2 text-sm text-slate-300' : 'mt-4 space-y-2 text-sm text-slate-700'}>
+                    <p><span className={isDark ? 'text-slate-500' : 'text-slate-600'}>Course:</span> {getCourseLabel(selectedAlumni.course)}</p>
+                    <p><span className={isDark ? 'text-slate-500' : 'text-slate-600'}>Branch:</span> {getBranchLabel(selectedAlumni.course, selectedAlumni.branch || selectedAlumni.fieldOfStudy)}</p>
+                    <p><span className={isDark ? 'text-slate-500' : 'text-slate-600'}>Batch:</span> {selectedAlumni.graduationYear || 'NA'}</p>
+                    <p><span className={isDark ? 'text-slate-500' : 'text-slate-600'}>Import:</span> {selectedAlumni.importSource || 'Manual / legacy'}</p>
                   </div>
                 </div>
 
@@ -604,8 +604,8 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                       title: 'Core Profile',
                       fields: [
                         ['fullName', 'Full Name'],
-                        ['registrationNumber', 'Registration Number'],
-                        ['usn', 'USN'],
+                        ['registrationNumber', 'Roll Number'],
+                        ['usn', 'Registration Number'],
                         ['graduationYear', 'Graduation Year'],
                         ['course', 'Course'],
                         ['branch', 'Branch'],
@@ -653,28 +653,28 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                       ]
                     }
                   ].map((section) => (
-                    <div key={section.title} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-                      <h4 className="mb-4 text-lg font-semibold text-white">{section.title}</h4>
+                    <div key={section.title} className={isDark ? 'rounded-2xl border border-slate-800 bg-slate-900/60 p-5' : 'rounded-2xl border border-slate-200 bg-slate-50 p-5'}>
+                      <h4 className={isDark ? 'mb-4 text-lg font-semibold text-white' : 'mb-4 text-lg font-semibold text-slate-900'}>{section.title}</h4>
                       <div className="grid gap-4 sm:grid-cols-2">
                         {section.fields.map(([key, label]) => (
-                          <div key={key} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{label}</p>
-                            <p className="mt-2 break-words text-sm text-slate-100">{formatValue(key, selectedAlumni[key], selectedAlumni)}</p>
+                          <div key={key} className={isDark ? 'rounded-xl border border-slate-800 bg-slate-950/60 p-4' : 'rounded-xl border border-slate-200 bg-white p-4'}>
+                            <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>{label}</p>
+                            <p className={isDark ? 'mt-2 break-words text-sm text-slate-100' : 'mt-2 break-words text-sm text-slate-900'}>{formatValue(key, selectedAlumni[key], selectedAlumni)}</p>
                           </div>
                         ))}
                       </div>
                     </div>
                   ))}
 
-                  <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-                    <h4 className="mb-4 text-lg font-semibold text-white">All Stored Fields</h4>
+                  <div className={isDark ? 'rounded-2xl border border-slate-800 bg-slate-900/60 p-5' : 'rounded-2xl border border-slate-200 bg-slate-50 p-5'}>
+                    <h4 className={isDark ? 'mb-4 text-lg font-semibold text-white' : 'mb-4 text-lg font-semibold text-slate-900'}>All Stored Fields</h4>
                     <div className="grid gap-3 md:grid-cols-2">
                       {Object.entries(selectedAlumni)
                         .filter(([key]) => key !== 'password' && key !== '__v')
                         .map(([key, value]) => (
-                          <div key={key} className="rounded-xl border border-slate-800 bg-slate-950/60 p-4">
-                            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{key}</p>
-                            <p className="mt-2 break-words text-sm text-slate-100">
+                          <div key={key} className={isDark ? 'rounded-xl border border-slate-800 bg-slate-950/60 p-4' : 'rounded-xl border border-slate-200 bg-white p-4'}>
+                            <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>{key}</p>
+                            <p className={isDark ? 'mt-2 break-words text-sm text-slate-100' : 'mt-2 break-words text-sm text-slate-900'}>
                               {formatValue(key, value, selectedAlumni)}
                             </p>
                           </div>
