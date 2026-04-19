@@ -266,6 +266,14 @@ function getCell(row, idx) {
   return normalizeText(row[idx]);
 }
 
+function toSafeFieldKey(header, idx) {
+  const raw = normalizeText(header).toLowerCase();
+  const compact = raw.replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  if (!compact) return `field_${idx + 1}`;
+  if (/^\d/.test(compact)) return `field_${compact}`;
+  return compact;
+}
+
 function sanitizeYearKey(value) {
   const year = Number(value);
   if (Number.isFinite(year) && year >= 1900 && year <= 3000) return String(year);
@@ -308,6 +316,8 @@ async function upsertYearCollections(records, sourceFile) {
             religion: row.religion,
             higherStudy: row.higherStudy,
             permanentAddress: row.permanentAddress,
+            additionalFields: row.additionalFields,
+            additionalFieldLabels: row.additionalFieldLabels,
             linkedin: row.linkedin,
             github: row.github,
             sourceFile,
@@ -369,6 +379,7 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
   const headerRowIdx = inferHeaderRow(rows.slice(0, 15));
   const headerRow = rows[headerRowIdx] || [];
   const columns = findColumnIndexes(headerRow);
+  const knownColumnIndexes = new Set(Object.values(columns).filter((value) => Number.isInteger(value)));
   const missingRequiredColumns = ['rollNo', 'fullName'].filter((field) => columns[field] === undefined);
 
   if (missingRequiredColumns.length) {
@@ -425,6 +436,21 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
     const permanentAddress = normalizeText(getCell(row, columns.permanentAddress));
     const linkedin = normalizeUrl(getCell(row, columns.linkedin));
     const github = normalizeUrl(getCell(row, columns.github));
+    const additionalFields = {};
+    const additionalFieldLabels = {};
+
+    for (let colIdx = 0; colIdx < headerRow.length; colIdx += 1) {
+      if (knownColumnIndexes.has(colIdx)) continue;
+      const headerLabel = normalizeText(headerRow[colIdx]);
+      if (!headerLabel) continue;
+
+      const rawValue = normalizeText(row[colIdx]);
+      if (!rawValue) continue;
+
+      const fieldKey = toSafeFieldKey(headerLabel, colIdx);
+      additionalFields[fieldKey] = rawValue;
+      additionalFieldLabels[fieldKey] = headerLabel;
+    }
 
     // Date of visit is admin-managed only; import initializes as empty list.
     const dateOfVisit = [];
@@ -467,6 +493,8 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
       higherStudy,
       permanentAddress,
       dateOfVisit,
+      additionalFields,
+      additionalFieldLabels,
       linkedin,
       github
     });
@@ -636,6 +664,8 @@ const importAlumniFromExcel = async (req, res) => {
               religion: record.religion,
               higherStudy: record.higherStudy,
               permanentAddress: record.permanentAddress,
+              additionalFields: record.additionalFields,
+              additionalFieldLabels: record.additionalFieldLabels,
               linkedin: record.linkedin,
               github: record.github
             },

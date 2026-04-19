@@ -142,6 +142,28 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     return String(value);
   };
 
+  const getStoredFieldEntries = (alumni) => {
+    const coreEntries = Object.entries(alumni || {})
+      .filter(([key]) => !['password', '__v', 'additionalFields', 'additionalFieldLabels'].includes(key))
+      .map(([key, value]) => ({
+        id: key,
+        label: fieldDisplayNames[key] || key,
+        key,
+        value
+      }));
+
+    const dynamicValues = alumni?.additionalFields || {};
+    const dynamicLabels = alumni?.additionalFieldLabels || {};
+    const dynamicEntries = Object.entries(dynamicValues).map(([key, value]) => ({
+      id: `additional_${key}`,
+      label: dynamicLabels[key] || key,
+      key: `additionalFields.${key}`,
+      value
+    }));
+
+    return [...coreEntries, ...dynamicEntries];
+  };
+
   // Fetch the alumni data
   const fetchAlumni = async ({ silent = false } = {}) => {
     try {
@@ -708,13 +730,12 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                   <div className={isDark ? 'rounded-2xl border border-slate-800 bg-slate-900/60 p-5' : 'rounded-2xl border border-slate-200 bg-slate-50 p-5'}>
                     <h4 className={isDark ? 'mb-4 text-lg font-semibold text-white' : 'mb-4 text-lg font-semibold text-slate-900'}>All Stored Fields</h4>
                     <div className="grid gap-3 md:grid-cols-2">
-                      {Object.entries(selectedAlumni)
-                        .filter(([key]) => key !== 'password' && key !== '__v')
-                        .map(([key, value]) => (
-                          <div key={key} className={isDark ? 'rounded-xl border border-slate-800 bg-slate-950/60 p-4' : 'rounded-xl border border-slate-200 bg-white p-4'}>
-                            <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>{fieldDisplayNames[key] || key}</p>
+                      {getStoredFieldEntries(selectedAlumni)
+                        .map((entry) => (
+                          <div key={entry.id} className={isDark ? 'rounded-xl border border-slate-800 bg-slate-950/60 p-4' : 'rounded-xl border border-slate-200 bg-white p-4'}>
+                            <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>{entry.label}</p>
                             <p className={isDark ? 'mt-2 break-words text-sm text-slate-100' : 'mt-2 break-words text-sm text-slate-900'}>
-                              {formatValue(key, value, selectedAlumni)}
+                              {formatValue(entry.key, entry.value, selectedAlumni)}
                             </p>
                           </div>
                         ))}

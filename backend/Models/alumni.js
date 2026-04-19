@@ -145,6 +145,16 @@ const alumniSchema = new Schema({
         type: String,
         trim: true,
     },
+    additionalFields: {
+        type: Map,
+        of: String,
+        default: {},
+    },
+    additionalFieldLabels: {
+        type: Map,
+        of: String,
+        default: {},
+    },
     role: {
         type: String,
         enum: ['alumni'], // Define roles specifically for alumni
