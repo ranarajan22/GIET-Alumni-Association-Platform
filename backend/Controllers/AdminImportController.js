@@ -361,42 +361,15 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
     throw parseError;
   }
 
-  const sheet = workbook.worksheets[0];
-  if (!sheet) {
+  const sheets = workbook.worksheets || [];
+  if (!sheets.length) {
     return { records: [], errors: [{ row: 0, rollNo: '', reason: 'Workbook does not contain any worksheet.' }] };
   }
 
-  const rows = [];
-
-  sheet.eachRow({ includeEmpty: true }, (row) => {
-    rows.push(row.values.slice(1).map((cell) => normalizeCellValue(cell)));
-  });
-
-  if (!rows.length) {
-    return { records: [], errors: [{ row: 0, reason: 'Sheet is empty' }] };
-  }
-
-  const headerRowIdx = inferHeaderRow(rows.slice(0, 15));
-  const headerRow = rows[headerRowIdx] || [];
-  const columns = findColumnIndexes(headerRow);
-  const knownColumnIndexes = new Set(Object.values(columns).filter((value) => Number.isInteger(value)));
-  const missingRequiredColumns = ['rollNo', 'fullName'].filter((field) => columns[field] === undefined);
-
-  if (missingRequiredColumns.length) {
-    const fieldLabelMap = {
-      rollNo: 'University Registration Number / Roll No',
-      fullName: 'Name of the Alumni'
-    };
-
-    return {
-      records: [],
-      errors: [{
-        row: headerRowIdx + 1,
-        rollNo: '',
-        reason: `Missing required header columns: ${missingRequiredColumns.map((field) => fieldLabelMap[field] || field).join(', ')}`
-      }]
-    };
-  }
+  const fieldLabelMap = {
+    rollNo: 'University Registration Number / Roll No',
+    fullName: 'Name of the Alumni'
+  };
 
   const batchFromFile = yearFromFileName(fileName);
   const defaultCourse = normalizeText(options.defaultCourse || 'BTECH').toUpperCase();
@@ -405,99 +378,130 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
   const records = [];
   const errors = [];
 
-  for (let i = headerRowIdx + 1; i < rows.length; i += 1) {
-    const row = rows[i] || [];
-    const rowNumber = i + 1;
+  for (const sheet of sheets) {
+    const rows = [];
+    sheet.eachRow({ includeEmpty: true }, (row) => {
+      rows.push(row.values.slice(1).map((cell) => normalizeCellValue(cell)));
+    });
 
-    const batchText = getCell(row, columns.batch);
-    const batch = Number(batchText) || Number(options.defaultBatch) || batchFromFile || new Date().getFullYear();
-
-    const rollNo = normalizeIdentifier(getCell(row, columns.rollNo));
-    const regdNo = normalizeIdentifier(getCell(row, columns.regdNo)) || rollNo;
-    const fullName = normalizeText(getCell(row, columns.fullName));
-    const branchRaw = getCell(row, columns.branch) || options.defaultBranch || '';
-    const branch = normalizeBranch(branchRaw || '');
-    const course = normalizeCourse(getCell(row, columns.course) || options.defaultCourse || options.course || defaultCourse);
-    const dob = parseExcelDate(row[columns.dob], date1904);
-    const tempPassword = toTempPassword(dob) || fallbackTempPassword(rollNo);
-    const collegeEmail = buildEmail(rollNo, getCell(row, columns.collegeEmail));
-    const mobile = normalizePhone(getCell(row, columns.mobile));
-    const gender = normalizeText(getCell(row, columns.gender));
-    const dateOfMarriage = parseExcelDate(row[columns.dateOfMarriage], date1904);
-    const currentCompany = normalizeText(getCell(row, columns.currentCompany));
-    const designation = normalizeText(getCell(row, columns.designation));
-    const currentLocation = normalizeText(getCell(row, columns.currentLocation));
-    const parentsMobile = normalizePhone(getCell(row, columns.parentsMobile));
-    const personalEmail = normalizeEmail(getCell(row, columns.personalEmail));
-    const fatherName = normalizeText(getCell(row, columns.fatherName));
-    const motherName = normalizeText(getCell(row, columns.motherName));
-    const religion = normalizeText(getCell(row, columns.religion));
-    const higherStudy = normalizeText(getCell(row, columns.higherStudy));
-    const permanentAddress = normalizeText(getCell(row, columns.permanentAddress));
-    const linkedin = normalizeUrl(getCell(row, columns.linkedin));
-    const github = normalizeUrl(getCell(row, columns.github));
-    const additionalFields = {};
-    const additionalFieldLabels = {};
-
-    for (let colIdx = 0; colIdx < headerRow.length; colIdx += 1) {
-      if (knownColumnIndexes.has(colIdx)) continue;
-      const headerLabel = normalizeText(headerRow[colIdx]);
-      if (!headerLabel) continue;
-
-      const rawValue = normalizeText(row[colIdx]);
-      if (!rawValue) continue;
-
-      const fieldKey = toSafeFieldKey(headerLabel, colIdx);
-      additionalFields[fieldKey] = rawValue;
-      additionalFieldLabels[fieldKey] = headerLabel;
+    if (!rows.length) {
+      continue;
     }
 
-    // Date of visit is admin-managed only; import initializes as empty list.
-    const dateOfVisit = [];
+    const headerRowIdx = inferHeaderRow(rows.slice(0, 15));
+    const headerRow = rows[headerRowIdx] || [];
+    const columns = findColumnIndexes(headerRow);
+    const knownColumnIndexes = new Set(Object.values(columns).filter((value) => Number.isInteger(value)));
+    const missingRequiredColumns = ['rollNo', 'fullName'].filter((field) => columns[field] === undefined);
 
-    const isRowEmpty = row.every((cell) => !normalizeText(cell));
-    if (isRowEmpty) continue;
-
-    if (!rollNo || !fullName) {
+    if (missingRequiredColumns.length) {
       errors.push({
-        row: rowNumber,
-        rollNo: rollNo || '',
-        reason: 'Missing required values (University Registration Number / Name of the Alumni)'
+        row: headerRowIdx + 1,
+        rollNo: '',
+        reason: `[${sheet.name}] Missing required header columns: ${missingRequiredColumns.map((field) => fieldLabelMap[field] || field).join(', ')}`
       });
       continue;
     }
 
-    records.push({
-      rowNumber,
-      rollNo,
-      regdNo,
-      fullName,
-      branchRaw,
-      branch,
-      course,
-      batch,
-      dob,
-      tempPassword,
-      collegeEmail,
-      mobile,
-      gender,
-      dateOfMarriage,
-      currentCompany,
-      designation,
-      currentLocation,
-      parentsMobile,
-      personalEmail,
-      fatherName,
-      motherName,
-      religion,
-      higherStudy,
-      permanentAddress,
-      dateOfVisit,
-      additionalFields,
-      additionalFieldLabels,
-      linkedin,
-      github
-    });
+    for (let i = headerRowIdx + 1; i < rows.length; i += 1) {
+      const row = rows[i] || [];
+      const rowNumber = i + 1;
+
+      const batchText = getCell(row, columns.batch);
+      const batch = Number(batchText) || Number(options.defaultBatch) || batchFromFile || new Date().getFullYear();
+
+      const rollNo = normalizeIdentifier(getCell(row, columns.rollNo));
+      const regdNo = normalizeIdentifier(getCell(row, columns.regdNo)) || rollNo;
+      const fullName = normalizeText(getCell(row, columns.fullName));
+      const branchRaw = getCell(row, columns.branch) || options.defaultBranch || '';
+      const branch = normalizeBranch(branchRaw || '');
+      const course = normalizeCourse(getCell(row, columns.course) || options.defaultCourse || options.course || defaultCourse || sheet.name);
+      const dob = parseExcelDate(row[columns.dob], date1904);
+      const tempPassword = toTempPassword(dob) || fallbackTempPassword(rollNo);
+      const collegeEmail = buildEmail(rollNo, getCell(row, columns.collegeEmail));
+      const mobile = normalizePhone(getCell(row, columns.mobile));
+      const gender = normalizeText(getCell(row, columns.gender));
+      const dateOfMarriage = parseExcelDate(row[columns.dateOfMarriage], date1904);
+      const currentCompany = normalizeText(getCell(row, columns.currentCompany));
+      const designation = normalizeText(getCell(row, columns.designation));
+      const currentLocation = normalizeText(getCell(row, columns.currentLocation));
+      const parentsMobile = normalizePhone(getCell(row, columns.parentsMobile));
+      const personalEmail = normalizeEmail(getCell(row, columns.personalEmail));
+      const fatherName = normalizeText(getCell(row, columns.fatherName));
+      const motherName = normalizeText(getCell(row, columns.motherName));
+      const religion = normalizeText(getCell(row, columns.religion));
+      const higherStudy = normalizeText(getCell(row, columns.higherStudy));
+      const permanentAddress = normalizeText(getCell(row, columns.permanentAddress));
+      const linkedin = normalizeUrl(getCell(row, columns.linkedin));
+      const github = normalizeUrl(getCell(row, columns.github));
+      const additionalFields = {};
+      const additionalFieldLabels = {};
+
+      for (let colIdx = 0; colIdx < headerRow.length; colIdx += 1) {
+        if (knownColumnIndexes.has(colIdx)) continue;
+        const headerLabel = normalizeText(headerRow[colIdx]);
+        if (!headerLabel) continue;
+
+        const rawValue = normalizeText(row[colIdx]);
+        if (!rawValue) continue;
+
+        const fieldKey = toSafeFieldKey(headerLabel, colIdx);
+        additionalFields[fieldKey] = rawValue;
+        additionalFieldLabels[fieldKey] = headerLabel;
+      }
+
+      // Date of visit is admin-managed only; import initializes as empty list.
+      const dateOfVisit = [];
+
+      const isRowEmpty = row.every((cell) => !normalizeText(cell));
+      if (isRowEmpty) continue;
+
+      if (!rollNo || !fullName) {
+        errors.push({
+          row: rowNumber,
+          rollNo: rollNo || '',
+          reason: `[${sheet.name}] Missing required values (University Registration Number / Name of the Alumni)`
+        });
+        continue;
+      }
+
+      records.push({
+        rowNumber,
+        sheetName: sheet.name,
+        rollNo,
+        regdNo,
+        fullName,
+        branchRaw,
+        branch,
+        course,
+        batch,
+        dob,
+        tempPassword,
+        collegeEmail,
+        mobile,
+        gender,
+        dateOfMarriage,
+        currentCompany,
+        designation,
+        currentLocation,
+        parentsMobile,
+        personalEmail,
+        fatherName,
+        motherName,
+        religion,
+        higherStudy,
+        permanentAddress,
+        dateOfVisit,
+        additionalFields,
+        additionalFieldLabels,
+        linkedin,
+        github
+      });
+    }
+  }
+
+  if (!records.length && !errors.length) {
+    errors.push({ row: 0, rollNo: '', reason: 'Workbook contains worksheets but no readable rows.' });
   }
 
   return { records, errors };
