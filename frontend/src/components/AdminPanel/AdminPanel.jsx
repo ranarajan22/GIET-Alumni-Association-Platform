@@ -230,10 +230,8 @@ function AdminPanel() {
                                 )}
                             </div>
 
-                        </>
-
-                                                {/* Platform Overview */}
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                            {/* Platform Overview */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                                                     <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-5' : 'bg-white border border-slate-200 rounded-2xl p-5'}>
                                                         <div className="flex items-start justify-between mb-3">
                                                             <div>
@@ -266,7 +264,9 @@ function AdminPanel() {
                                                         </div>
                                                         <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Students + Alumni combined</p>
                                                     </div>
-                                                </div>
+                            </div>
+
+                        </>
 
                     )}
                     {currentView === 'students' && <Students theme={theme} />}
