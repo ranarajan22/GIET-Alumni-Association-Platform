@@ -230,12 +230,44 @@ function AdminPanel() {
                                 )}
                             </div>
 
-                            {/* Lists Section */}
-                            <div className="space-y-6 lg:space-y-8">
-                                <Students theme={theme} />
-                                <Alumni theme={theme} />
-                            </div>
                         </>
+
+                                                {/* Platform Overview */}
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+                                                    <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-5' : 'bg-white border border-slate-200 rounded-2xl p-5'}>
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div>
+                                                                <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>Alumni Verification</p>
+                                                                <h3 className={isDark ? 'text-2xl font-bold text-white mt-1' : 'text-2xl font-bold text-slate-900 mt-1'}>{stats.totalAlumni > 0 ? Math.round((stats.verifiedAlumni / stats.totalAlumni) * 100) : 0}%</h3>
+                                                            </div>
+                                                            <div className={isDark ? 'px-3 py-1 rounded-lg bg-green-500/20 text-green-400 text-sm font-semibold' : 'px-3 py-1 rounded-lg bg-green-100 text-green-700 text-sm font-semibold'}>{stats.verifiedAlumni}/{stats.totalAlumni}</div>
+                                                        </div>
+                                                        <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Registered & Verified</p>
+                                                    </div>
+
+                                                    <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-5' : 'bg-white border border-slate-200 rounded-2xl p-5'}>
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div>
+                                                                <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>Platform Health</p>
+                                                                <h3 className={isDark ? 'text-2xl font-bold text-white mt-1' : 'text-2xl font-bold text-slate-900 mt-1'}>Excellent</h3>
+                                                            </div>
+                                                            <div className={isDark ? 'px-3 py-1 rounded-lg bg-blue-500/20 text-blue-400 text-sm font-semibold' : 'px-3 py-1 rounded-lg bg-blue-100 text-blue-700 text-sm font-semibold'}>Live</div>
+                                                        </div>
+                                                        <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>All systems operational</p>
+                                                    </div>
+
+                                                    <div className={isDark ? 'bg-slate-900/60 border border-slate-800 rounded-2xl p-5' : 'bg-white border border-slate-200 rounded-2xl p-5'}>
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div>
+                                                                <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>Active Users</p>
+                                                                <h3 className={isDark ? 'text-2xl font-bold text-white mt-1' : 'text-2xl font-bold text-slate-900 mt-1'}>{stats.totalStudents + stats.totalAlumni}</h3>
+                                                            </div>
+                                                            <div className={isDark ? 'px-3 py-1 rounded-lg bg-purple-500/20 text-purple-400 text-sm font-semibold' : 'px-3 py-1 rounded-lg bg-purple-100 text-purple-700 text-sm font-semibold'}>Total</div>
+                                                        </div>
+                                                        <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>Students + Alumni combined</p>
+                                                    </div>
+                                                </div>
+
                     )}
                     {currentView === 'students' && <Students theme={theme} />}
                     {currentView === 'alumni' && <Alumni theme={theme} />}

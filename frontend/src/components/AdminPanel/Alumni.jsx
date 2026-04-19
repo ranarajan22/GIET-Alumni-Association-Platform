@@ -71,6 +71,45 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     [courseFilter, alumniList]
   );
 
+  // Hardcoded field name mapping for display labels
+  const fieldDisplayNames = {
+    fullName: 'Full Name',
+    graduationYear: 'Graduation Year',
+    collegeEmail: 'College Email',
+    personalEmail: 'Personal Email',
+    profilePhoto: 'Profile Photo',
+    linkedin: 'LinkedIn',
+    github: 'GitHub',
+    course: 'Course',
+    usn: 'Registration Number',
+    registrationNumber: 'Roll Number',
+    fieldOfStudy: 'Field of Study',
+    branch: 'Branch',
+    mobile: 'Mobile',
+    parentsMobile: 'Parents Mobile',
+    fatherName: 'Father Name',
+    motherName: 'Mother Name',
+    religion: 'Religion',
+    higherStudy: 'Higher Study',
+    permanentAddress: 'Permanent Address',
+    dob: 'Date of Birth',
+    dateOfMarriage: 'Date of Marriage',
+    currentCompany: 'Current Company',
+    designation: 'Designation',
+    currentLocation: 'Current Location',
+    dateOfVisit: 'Date Of Visit',
+    createdAt: 'Created At',
+    updatedAt: 'Updated At',
+    gender: 'Gender',
+    verified: 'Verified',
+    passwordResetRequired: 'Password Reset Required',
+    degreeCertificate: 'Degree Certificate',
+    degreeCertificateImage: 'Degree Certificate Image',
+    importSource: 'Import Source',
+    followers: 'Followers',
+    _id: 'ID'
+  };
+
   const formatValue = (key, value, alumni) => {
     if (Array.isArray(value)) {
       return value.length ? value.map((entry) => formatDate(entry)).join(', ') : '—';
@@ -673,7 +712,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                         .filter(([key]) => key !== 'password' && key !== '__v')
                         .map(([key, value]) => (
                           <div key={key} className={isDark ? 'rounded-xl border border-slate-800 bg-slate-950/60 p-4' : 'rounded-xl border border-slate-200 bg-white p-4'}>
-                            <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>{key}</p>
+                            <p className={isDark ? 'text-xs uppercase tracking-[0.2em] text-slate-500' : 'text-xs uppercase tracking-[0.2em] text-slate-600'}>{fieldDisplayNames[key] || key}</p>
                             <p className={isDark ? 'mt-2 break-words text-sm text-slate-100' : 'mt-2 break-words text-sm text-slate-900'}>
                               {formatValue(key, value, selectedAlumni)}
                             </p>
