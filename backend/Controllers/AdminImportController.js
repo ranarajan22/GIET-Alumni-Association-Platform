@@ -50,13 +50,17 @@ const HEADER_PATTERNS = {
   rollNo: [
     'roll',
     'roll no',
-    'regd',
+    'usn',
+    'university roll no'
+  ],
+  regdNo: [
     'regd no',
-    'registration',
+    'regd',
     'registration no',
+    'registration number',
+    'registration',
     'reg no',
     'reg. no',
-    'usn',
     'university registration number',
     'university regd no',
     'university reg no'
@@ -398,6 +402,7 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
     const batch = Number(batchText) || Number(options.defaultBatch) || batchFromFile || new Date().getFullYear();
 
     const rollNo = normalizeIdentifier(getCell(row, columns.rollNo));
+    const regdNo = normalizeIdentifier(getCell(row, columns.regdNo)) || rollNo;
     const fullName = normalizeText(getCell(row, columns.fullName));
     const branchRaw = getCell(row, columns.branch) || options.defaultBranch || '';
     const branch = normalizeBranch(branchRaw || '');
@@ -439,6 +444,7 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
     records.push({
       rowNumber,
       rollNo,
+      regdNo,
       fullName,
       branchRaw,
       branch,
@@ -605,7 +611,7 @@ const importAlumniFromExcel = async (req, res) => {
             $set: {
               fullName: record.fullName,
               registrationNumber: record.rollNo,
-              usn: record.rollNo,
+              usn: record.regdNo,
               collegeEmail: record.collegeEmail,
               graduationYear: Number(record.batch),
               course: record.course,
