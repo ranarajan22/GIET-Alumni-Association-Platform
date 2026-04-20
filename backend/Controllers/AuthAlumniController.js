@@ -26,6 +26,7 @@ const loginAlumni = async (req, res) => {
         // Support login with either roll number or email
         const alumni = await Alumni.findOne({
             $or: [
+                { rollNumber: loginIdentifier },
                 { registrationNumber: loginIdentifier },
                 { usn: loginIdentifier },
                 { collegeEmail: loginIdentifier.toLowerCase() }

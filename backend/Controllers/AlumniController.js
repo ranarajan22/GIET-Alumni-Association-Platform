@@ -27,7 +27,7 @@ function normalizeText(value) {
 }
 
 function attachIdentityFields(record) {
-  const rollNumber = record?.registrationNumber || '';
+  const rollNumber = record?.rollNumber || record?.registrationNumber || '';
   const registrationNumber = record?.usn || record?.registrationNumber || '';
 
   return {
@@ -287,12 +287,14 @@ const updateAlumniProfile = async (req, res) => {
       update.fieldOfStudy = normalizedField;
       update.branch = normalizedField;
     }
-    if (rollNumber !== undefined || registrationNumber !== undefined) {
-      const normalizedRoll = normalizeText(rollNumber !== undefined ? rollNumber : registrationNumber) || 'NA';
-      update.registrationNumber = normalizedRoll;
+    if (rollNumber !== undefined) {
+      update.rollNumber = normalizeText(rollNumber) || 'NA';
     }
-    if (usn !== undefined) {
-      update.usn = normalizeText(usn) || 'NA';
+    const registrationInput = registrationNumber !== undefined ? registrationNumber : usn;
+    if (registrationInput !== undefined) {
+      const normalizedRegistration = normalizeText(registrationInput) || 'NA';
+      update.registrationNumber = normalizedRegistration;
+      update.usn = normalizedRegistration;
     }
 
     if (typeof profilePhoto === 'string' && profilePhoto.trim()) update.profilePhoto = profilePhoto.trim();

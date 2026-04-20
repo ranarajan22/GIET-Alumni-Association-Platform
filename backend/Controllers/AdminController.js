@@ -6,7 +6,7 @@ const Mentorship = require('../Models/Mentorship');
 const bcrypt = require('bcrypt');
 
 function normalizeIdentityFields(record) {
-  const rollNumber = record?.registrationNumber || '';
+  const rollNumber = record?.rollNumber || record?.registrationNumber || '';
   const registrationNumber = record?.usn || record?.registrationNumber || '';
   return {
     ...record,

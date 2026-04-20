@@ -29,7 +29,12 @@ const alumniSchema = new Schema({
     registrationNumber: {
         type: String,
         required: true,
+        trim: true,
+    },
+    rollNumber: {
+        type: String,
         unique: true,
+        sparse: true,
         trim: true,
     },
     password: {

@@ -81,8 +81,9 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     linkedin: 'LinkedIn',
     github: 'GitHub',
     course: 'Course',
-    usn: 'Registration Number',
-    registrationNumber: 'Roll Number',
+    usn: 'USN',
+    registrationNumber: 'Registration Number',
+    rollNumber: 'Roll Number',
     fieldOfStudy: 'Field of Study',
     branch: 'Branch',
     mobile: 'Mobile',
@@ -632,7 +633,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
               <div>
                 <p className={isDark ? 'text-xs uppercase tracking-[0.3em] text-slate-500' : 'text-xs uppercase tracking-[0.3em] text-slate-600'}>Alumni Details</p>
                 <h3 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>{selectedAlumni.fullName || 'NA'}</h3>
-                <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>Roll Number: {selectedAlumni.registrationNumber || selectedAlumni.usn || 'NA'}</p>
+                <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>Roll Number: {selectedAlumni.rollNumber || selectedAlumni.registrationNumber || 'NA'}</p>
               </div>
               <button
                 onClick={() => setSelectedAlumni(null)}
@@ -665,8 +666,9 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
                       title: 'Core Profile',
                       fields: [
                         ['fullName', 'Full Name'],
-                        ['registrationNumber', 'Roll Number'],
-                        ['usn', 'Registration Number'],
+                        ['rollNumber', 'Roll Number'],
+                        ['registrationNumber', 'Registration Number'],
+                        ['usn', 'USN'],
                         ['graduationYear', 'Graduation Year'],
                         ['course', 'Course'],
                         ['branch', 'Branch'],

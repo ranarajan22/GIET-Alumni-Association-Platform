@@ -297,11 +297,13 @@ async function upsertYearCollections(records, sourceFile) {
     const collection = mongoose.connection.collection(collectionName);
 
     const ops = rows.map((row) => ({
-      updateOne: {
-        filter: { registrationNumber: row.rollNo },
+        updateOne: {
+          filter: { rollNumber: row.rollNo },
         update: {
           $set: {
-            registrationNumber: row.rollNo,
+              rollNumber: row.rollNo,
+              registrationNumber: row.regdNo,
+              usn: row.regdNo,
             fullName: row.fullName,
             graduationYear: Number(row.batch) || null,
             course: row.course,
@@ -638,11 +640,12 @@ const importAlumniFromExcel = async (req, res) => {
 
       ops.push({
         updateOne: {
-          filter: { registrationNumber: record.rollNo },
+          filter: { rollNumber: record.rollNo },
           update: {
             $set: {
               fullName: record.fullName,
-              registrationNumber: record.rollNo,
+                rollNumber: record.rollNo,
+                registrationNumber: record.regdNo,
               usn: record.regdNo,
               collegeEmail: record.collegeEmail,
               graduationYear: Number(record.batch),
