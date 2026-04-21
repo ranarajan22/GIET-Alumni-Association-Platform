@@ -21,9 +21,10 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(200);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 60,
+    limit: 200,
     total: 0,
     totalPages: 1,
     hasPrevPage: false,
@@ -166,7 +167,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const params = {
         page,
-        limit: pagination.limit,
+        limit: pageSize,
         search: debouncedSearch || undefined,
         batch: batchFilter || undefined,
         course: courseFilter || undefined,
@@ -211,7 +212,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy]);
+  }, [debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy, pageSize]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -219,7 +220,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
   useEffect(() => {
     fetchAlumni({ page: currentPage });
-  }, [currentPage, debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy]);
+  }, [currentPage, debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy, pageSize]);
 
   useEffect(() => {
     if (branchFilter && !branchOptions.some((branch) => branch.value === branchFilter)) {
@@ -231,6 +232,8 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     () => [...(facets.batches || [])].filter(Boolean).sort((a, b) => b - a),
     [facets.batches]
   );
+  const visibleStart = pagination.total === 0 ? 0 : ((pagination.page - 1) * pagination.limit) + 1;
+  const visibleEnd = pagination.total === 0 ? 0 : Math.min(pagination.total, visibleStart + alumniList.length - 1);
 
   const handleResetPasswordToDob = async (id) => {
     try {
@@ -296,10 +299,21 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Complete List</p>
           <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>All Alumni</h2>
           <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
-            Showing {alumniList.length} records • {pagination.total} matching current filters
+            Showing {visibleStart}-{visibleEnd} of {pagination.total} matching current filters
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <select
+            value={pageSize}
+            onChange={(e) => setPageSize(Number(e.target.value))}
+            className={isDark ? 'px-2.5 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-100' : 'px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-xs font-semibold text-slate-800'}
+            title="Rows per page"
+          >
+            <option value={100}>100 / page</option>
+            <option value={200}>200 / page</option>
+            <option value={300}>300 / page</option>
+            <option value={500}>500 / page</option>
+          </select>
           <button
             onClick={() => fetchAlumni()}
             className={isDark ? 'px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-xs font-semibold text-white inline-flex items-center gap-1.5' : 'px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5'}

@@ -87,7 +87,7 @@ function getAdminAlumniSort(query = {}) {
 const getAllAlumni = async (req, res) => {
   try {
     const page = toPositiveInt(req.query.page, 1);
-    const limit = Math.min(toPositiveInt(req.query.limit, 60), 100);
+    const limit = Math.min(toPositiveInt(req.query.limit, 200), 500);
     const skip = (page - 1) * limit;
     const filter = buildAdminAlumniFilter(req.query);
     const sort = getAdminAlumniSort(req.query);
