@@ -83,6 +83,12 @@ function getAdminAlumniSort(query = {}) {
   }
 }
 
+function isLikelyRollNumber(value) {
+  const normalized = String(value || '').trim().replace(/\s+/g, '').toUpperCase();
+  if (!normalized) return false;
+  return /^\d{2,4}[A-Z]{2,5}\d{2,5}$/.test(normalized);
+}
+
 // Controller to get all alumni (for admin)
 const getAllAlumni = async (req, res) => {
   try {
@@ -125,7 +131,9 @@ const getAlumniFacets = async (req, res) => {
       Alumni.distinct('fieldOfStudy', {})
     ]);
 
-    const mergedBranches = Array.from(new Set([...(branchValues || []), ...(fieldValues || [])]));
+    const mergedBranches = Array.from(
+      new Set([...(branchValues || []), ...(fieldValues || [])].filter((value) => value && !isLikelyRollNumber(value)))
+    );
 
     res.status(200).json({
       batches: batchValues.filter(Boolean).sort((a, b) => a - b),

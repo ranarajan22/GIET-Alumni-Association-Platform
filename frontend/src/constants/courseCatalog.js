@@ -247,6 +247,12 @@ function uniqueOptions(options) {
   });
 }
 
+function isLikelyRollNumber(value) {
+  const normalized = String(value || '').trim().replace(/\s+/g, '').toUpperCase();
+  if (!normalized) return false;
+  return /^\d{2,4}[A-Z]{2,5}\d{2,5}$/.test(normalized);
+}
+
 export function mergeCourseOptions(facetValues = []) {
   const catalogOptions = COURSE_OPTIONS.map((course) => ({
     value: course.value,
@@ -270,7 +276,7 @@ export function mergeBranchOptions(courseValue, facetValues = []) {
   }));
 
   const facetOptions = (facetValues || [])
-    .filter(Boolean)
+    .filter((value) => value && !isLikelyRollNumber(value))
     .map((value) => ({
       value,
       label: getBranchLabel(courseValue, value)
