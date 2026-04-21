@@ -4,36 +4,6 @@ import { API_BASE_URL } from '../../config';
 import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown, Rows3, Columns3, RefreshCw } from 'lucide-react';
 import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
-const ALUMNI_CACHE_KEY = 'admin_alumni_cache_v1';
-const ALUMNI_CACHE_TTL = 5 * 60 * 1000;
-
-const readAlumniCache = () => {
-  try {
-    const raw = sessionStorage.getItem(ALUMNI_CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.timestamp || !Array.isArray(parsed?.data)) return null;
-    if (Date.now() - parsed.timestamp > ALUMNI_CACHE_TTL) return null;
-    return parsed.data;
-  } catch {
-    return null;
-  }
-};
-
-const writeAlumniCache = (data) => {
-  try {
-    sessionStorage.setItem(
-      ALUMNI_CACHE_KEY,
-      JSON.stringify({
-        timestamp: Date.now(),
-        data
-      })
-    );
-  } catch {
-    // Ignore cache write failures and continue with in-memory data.
-  }
-};
-
 const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [alumniList, setAlumni] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -49,6 +19,17 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [viewMode, setViewMode] = useState('admin');
   const [layoutMode, setLayoutMode] = useState('vertical');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 60,
+    total: 0,
+    totalPages: 1,
+    hasPrevPage: false,
+    hasNextPage: false
+  });
+  const [facets, setFacets] = useState({ batches: [], courses: [], branches: [] });
   const apiBase = API_BASE_URL;
 
   const makeAbsoluteUrl = (value) => {
@@ -65,10 +46,10 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     return parsed.toLocaleDateString();
   };
 
-  const courseOptions = useMemo(() => mergeCourseOptions(alumniList.map((alumni) => alumni.course)), [alumniList]);
+  const courseOptions = useMemo(() => mergeCourseOptions(facets.courses || []), [facets.courses]);
   const branchOptions = useMemo(
-    () => mergeBranchOptions(courseFilter, alumniList.map((alumni) => alumni.branch || alumni.fieldOfStudy)),
-    [courseFilter, alumniList]
+    () => mergeBranchOptions(courseFilter, facets.branches || []),
+    [courseFilter, facets.branches]
   );
 
   // Hardcoded field name mapping for display labels
@@ -165,39 +146,50 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     return [...coreEntries, ...dynamicEntries];
   };
 
-  // Fetch the alumni data
-  const fetchAlumni = async ({ silent = false } = {}) => {
+  const fetchFacets = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get(`${apiBase}/admin/alumni/facets`, { headers });
+      setFacets(response.data || { batches: [], courses: [], branches: [] });
+    } catch (facetsError) {
+      console.error('Error fetching alumni facets:', facetsError.message);
+    }
+  };
+
+  const fetchAlumni = async ({ page = currentPage, silent = false } = {}) => {
     try {
       if (!silent) {
         setLoading(true);
       }
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      console.log('Fetching alumni from:', `${apiBase}/admin/alumni`, 'with token:', !!token);
-      const response = await axios.get(`${apiBase}/admin/alumni`, { headers });
+      const params = {
+        page,
+        limit: pagination.limit,
+        search: debouncedSearch || undefined,
+        batch: batchFilter || undefined,
+        course: courseFilter || undefined,
+        branch: branchFilter || undefined,
+        sortBy,
+        sortOrder: sortBy === 'batch' ? 'desc' : 'asc'
+      };
+
+      const response = await axios.get(`${apiBase}/admin/alumni`, { headers, params });
       
-      // Log the full response to check the structure
-      console.log('Alumni API Response:', response.data);
-      
-      // Check if the alumni data exists and is an array
-      const alumniData = response.data && Array.isArray(response.data.alumni) ? response.data.alumni : (Array.isArray(response.data) ? response.data : []);
-      
-      // If alumniData is an array, always show full admin list
-      if (alumniData.length > 0) {
-        const nextAlumni = alumniData.filter(Boolean);
-        setAlumni(nextAlumni);
-        writeAlumniCache(nextAlumni);
-      } else {
-        console.log('No alumni found');
-        setAlumni([]);
-        writeAlumniCache([]);
+      const alumniData = response.data && Array.isArray(response.data.alumni) ? response.data.alumni : [];
+      setAlumni(alumniData.filter(Boolean));
+      const nextPagination = response.data?.pagination;
+      if (nextPagination) {
+        setPagination(nextPagination);
+        setCurrentPage(nextPagination.page || page);
       }
-      
       setError('');
     } catch (error) {
       console.error('Error fetching alumni:', error.message, error.response?.data || error);
       setError(`Unable to fetch alumni: ${error.response?.data?.message || error.message}`);
       setAlumni([]);
+      setPagination((prev) => ({ ...prev, total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false }));
     } finally {
       if (!silent) {
         setLoading(false);
@@ -206,16 +198,28 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
   };
 
   useEffect(() => {
-    const cachedAlumni = readAlumniCache();
-    if (cachedAlumni) {
-      setAlumni(cachedAlumni);
-      setLoading(false);
-      fetchAlumni({ silent: true });
-      return;
-    }
+    fetchFacets();
+  }, []);
 
-    fetchAlumni();
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 300);
+
+    return () => clearTimeout(timerId);
+  }, [search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [showAll]);
+
+  useEffect(() => {
+    fetchAlumni({ page: currentPage });
+  }, [currentPage, debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy]);
 
   useEffect(() => {
     if (branchFilter && !branchOptions.some((branch) => branch.value === branchFilter)) {
@@ -223,80 +227,10 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     }
   }, [branchOptions, branchFilter]);
 
-  const normalizedSearch = search.trim().toLowerCase();
-  const getAlumniBranch = (alumni) => alumni.branch || alumni.fieldOfStudy || '';
-
-  const filteredAlumni = useMemo(
-    () => alumniList.filter((alumni) => {
-      const branchValue = getAlumniBranch(alumni);
-      const matchesSearch = !normalizedSearch ||
-        alumni.fullName?.toLowerCase().includes(normalizedSearch) ||
-        alumni.collegeEmail?.toLowerCase().includes(normalizedSearch) ||
-        alumni.registrationNumber?.toLowerCase().includes(normalizedSearch);
-      const matchesBatch = !batchFilter || String(alumni.graduationYear) === batchFilter;
-      const matchesCourse = !courseFilter || alumni.course === courseFilter;
-      const matchesBranch = !branchFilter || branchValue === branchFilter;
-      return matchesSearch && matchesBatch && matchesCourse && matchesBranch;
-    }),
-    [alumniList, normalizedSearch, batchFilter, courseFilter, branchFilter]
+  const descendingBatches = useMemo(
+    () => [...(facets.batches || [])].filter(Boolean).sort((a, b) => b - a),
+    [facets.batches]
   );
-
-  const filterCounters = useMemo(() => {
-    const batchCounts = {};
-    const courseCounts = {};
-    const branchCounts = {};
-    let allBatchesCount = 0;
-    let allCoursesCount = 0;
-    let allBranchesCount = 0;
-
-    alumniList.forEach((alumni) => {
-      const branchValue = getAlumniBranch(alumni);
-      const batchKey = alumni.graduationYear ? String(alumni.graduationYear) : '';
-      const matchesSearch = !normalizedSearch ||
-        alumni.fullName?.toLowerCase().includes(normalizedSearch) ||
-        alumni.collegeEmail?.toLowerCase().includes(normalizedSearch) ||
-        alumni.registrationNumber?.toLowerCase().includes(normalizedSearch);
-      const matchesBatch = !batchFilter || batchKey === batchFilter;
-      const matchesCourse = !courseFilter || alumni.course === courseFilter;
-      const matchesBranch = !branchFilter || branchValue === branchFilter;
-
-      if (matchesSearch && matchesCourse && matchesBranch) {
-        allBatchesCount += 1;
-        if (batchKey) {
-          batchCounts[batchKey] = (batchCounts[batchKey] || 0) + 1;
-        }
-      }
-
-      if (matchesSearch && matchesBatch && matchesBranch) {
-        allCoursesCount += 1;
-        if (alumni.course) {
-          courseCounts[alumni.course] = (courseCounts[alumni.course] || 0) + 1;
-        }
-      }
-
-      if (matchesSearch && matchesBatch && matchesCourse) {
-        allBranchesCount += 1;
-        if (branchValue) {
-          branchCounts[branchValue] = (branchCounts[branchValue] || 0) + 1;
-        }
-      }
-    });
-
-    return {
-      allBatchesCount,
-      allCoursesCount,
-      allBranchesCount,
-      batchCounts,
-      courseCounts,
-      branchCounts
-    };
-  }, [alumniList, normalizedSearch, batchFilter, courseFilter, branchFilter]);
-
-  const batches = useMemo(
-    () => [...new Set(alumniList.map((a) => a.graduationYear))].filter(Boolean).sort((a, b) => a - b),
-    [alumniList]
-  );
-  const descendingBatches = useMemo(() => [...batches].sort((a, b) => b - a), [batches]);
 
   const handleResetPasswordToDob = async (id) => {
     try {
@@ -323,7 +257,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.put(`${apiBase}/admin/alumni/${id}/visit-date`, { visitDate }, { headers });
       setVisitInfo(`Visit date ${visitDate} added successfully.`);
-      fetchAlumni();
+      fetchAlumni({ page: currentPage, silent: true });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to add visit date');
     }
@@ -341,30 +275,16 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
       setError(`✓ ${response.data?.message || 'Alumni profile deleted successfully'}`);
       setDeleteConfirm(null);
       setSelectedAlumni(null);
-      fetchAlumni();
+      const nextPage = alumniList.length <= 1 && currentPage > 1 ? currentPage - 1 : currentPage;
+      if (nextPage !== currentPage) {
+        setCurrentPage(nextPage);
+      } else {
+        fetchAlumni({ page: currentPage });
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to delete alumni profile');
     }
   };
-
-  const sortedAlumni = useMemo(() => {
-    const sorted = [...filteredAlumni];
-    sorted.sort((a, b) => {
-      switch (sortBy) {
-        case 'name':
-          return (a.fullName || '').localeCompare(b.fullName || '');
-        case 'batch':
-          return b.graduationYear - a.graduationYear;
-        case 'email':
-          return (a.collegeEmail || '').localeCompare(b.collegeEmail || '');
-        case 'regNumber':
-          return (a.registrationNumber || '').localeCompare(b.registrationNumber || '');
-        default:
-          return 0;
-      }
-    });
-    return sorted;
-  }, [filteredAlumni, sortBy]);
 
   const skeletons = Array.from({ length: 3 });
   const isDark = theme === 'dark';
@@ -376,7 +296,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Complete List</p>
           <h2 className={isDark ? 'text-2xl font-bold text-white' : 'text-2xl font-bold text-slate-900'}>All Alumni</h2>
           <p className={isDark ? 'text-sm text-slate-400' : 'text-sm text-slate-600'}>
-            {alumniList.length} total • {filteredAlumni.length} matching current filters
+            Showing {alumniList.length} records • {pagination.total} matching current filters
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -402,21 +322,21 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           />
         </div>
         <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
-          <option value="">All Batches ({filterCounters.allBatchesCount})</option>
-          {batches.map((batch) => (
-            <option key={batch} value={batch}>{batch} ({filterCounters.batchCounts[String(batch)] || 0})</option>
+          <option value="">All Batches</option>
+          {(facets.batches || []).map((batch) => (
+            <option key={batch} value={batch}>{batch}</option>
           ))}
         </select>
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
-          <option value="">All Courses ({filterCounters.allCoursesCount})</option>
+          <option value="">All Courses</option>
           {courseOptions.map((course) => (
-            <option key={course.value} value={course.value}>{course.label} ({filterCounters.courseCounts[course.value] || 0})</option>
+            <option key={course.value} value={course.value}>{course.label}</option>
           ))}
         </select>
         <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
-          <option value="">All Branches ({filterCounters.allBranchesCount})</option>
+          <option value="">All Branches</option>
           {branchOptions.map((branch) => (
-            <option key={branch.value} value={branch.value}>{branch.label} ({filterCounters.branchCounts[branch.value] || 0})</option>
+            <option key={branch.value} value={branch.value}>{branch.label}</option>
           ))}
         </select>
       </div>
@@ -485,7 +405,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           onClick={() => setBatchFilter('')}
           className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${!batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border border-slate-300 text-slate-700'}`}
         >
-          All Years ({filterCounters.allBatchesCount})
+          All Years
         </button>
         {descendingBatches.map((year) => (
           <button
@@ -493,7 +413,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
             onClick={() => setBatchFilter(String(year))}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${String(year) === batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border border-slate-300 text-slate-700'}`}
           >
-            {year} ({filterCounters.batchCounts[String(year)] || 0})
+            {year}
           </button>
         ))}
       </div>
@@ -518,14 +438,14 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           <AlertTriangle className="w-4 h-4" />
           {error}
         </div>
-      ) : filteredAlumni.length === 0 ? (
+      ) : alumniList.length === 0 ? (
         <div className={isDark ? 'p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-slate-300' : 'p-6 bg-white border border-slate-200 rounded-2xl text-center text-slate-700'}>
           <Shield className={isDark ? 'w-8 h-8 mx-auto text-slate-500 mb-2' : 'w-8 h-8 mx-auto text-slate-500 mb-2'} />
           No alumni found for selected filters.
         </div>
       ) : (
         <div className={layoutMode === 'horizontal' ? 'space-y-3' : 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}>
-          {sortedAlumni.map((alumni) => (
+          {alumniList.map((alumni) => (
             <div
               key={alumni._id}
               className={`p-4 rounded-xl shadow-lg border ${viewMode === 'network' ? isDark ? 'bg-slate-800/40 border-slate-700' : 'bg-slate-50 border-slate-200' : isDark ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'} ${layoutMode === 'horizontal' ? 'flex flex-col md:flex-row md:items-start md:justify-between md:gap-4' : ''}`}
@@ -623,6 +543,30 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && pagination.totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <p className={isDark ? 'text-xs text-slate-400' : 'text-xs text-slate-600'}>
+            Page {pagination.page} of {pagination.totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={!pagination.hasPrevPage}
+              className={isDark ? 'px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed' : 'px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed'}
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage((prev) => (pagination.hasNextPage ? prev + 1 : prev))}
+              disabled={!pagination.hasNextPage}
+              className={isDark ? 'px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-semibold text-slate-200 disabled:opacity-50 disabled:cursor-not-allowed' : 'px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-800 disabled:opacity-50 disabled:cursor-not-allowed'}
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 

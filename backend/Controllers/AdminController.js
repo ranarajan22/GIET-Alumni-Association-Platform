@@ -25,15 +25,116 @@ function tempPasswordFromDob(dob) {
   return `${dd}${mm}${yyyy}`;
 }
 
+function toPositiveInt(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
+}
+
+function buildAdminAlumniFilter(query = {}) {
+  const filter = {};
+
+  if (query.batch) {
+    const year = Number.parseInt(query.batch, 10);
+    if (!Number.isNaN(year)) {
+      filter.graduationYear = year;
+    }
+  }
+
+  if (query.course) filter.course = query.course;
+  if (query.branch) {
+    filter.$or = [{ branch: query.branch }, { fieldOfStudy: query.branch }];
+  }
+
+  if (query.search) {
+    const searchRegex = new RegExp(query.search, 'i');
+    const searchOr = [
+      { fullName: searchRegex },
+      { collegeEmail: searchRegex },
+      { personalEmail: searchRegex },
+      { registrationNumber: searchRegex },
+      { usn: searchRegex },
+      { rollNumber: searchRegex }
+    ];
+
+    if (filter.$or) {
+      filter.$and = [{ $or: filter.$or }, { $or: searchOr }];
+      delete filter.$or;
+    } else {
+      filter.$or = searchOr;
+    }
+  }
+
+  return filter;
+}
+
+function getAdminAlumniSort(query = {}) {
+  const direction = query.sortOrder === 'asc' ? 1 : -1;
+  switch (query.sortBy) {
+    case 'name':
+      return { fullName: direction, _id: 1 };
+    case 'email':
+      return { collegeEmail: direction, _id: 1 };
+    case 'regNumber':
+      return { registrationNumber: direction, _id: 1 };
+    case 'batch':
+      return { graduationYear: direction, fullName: 1 };
+    default:
+      return { createdAt: -1, _id: -1 };
+  }
+}
+
 // Controller to get all alumni (for admin)
 const getAllAlumni = async (req, res) => {
   try {
-    // Include certificate for admin review but exclude sensitive password hash
-    const alumni = await Alumni.find().select('-password').lean();
-    res.status(200).json({ alumni: alumni.map(normalizeIdentityFields) });
+    const page = toPositiveInt(req.query.page, 1);
+    const limit = Math.min(toPositiveInt(req.query.limit, 60), 100);
+    const skip = (page - 1) * limit;
+    const filter = buildAdminAlumniFilter(req.query);
+    const sort = getAdminAlumniSort(req.query);
+
+    const [alumni, total] = await Promise.all([
+      Alumni.find(filter).sort(sort).skip(skip).limit(limit).select('-password').lean(),
+      Alumni.countDocuments(filter)
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    res.status(200).json({
+      alumni: alumni.map(normalizeIdentityFields),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasPrevPage: page > 1,
+        hasNextPage: page < totalPages
+      }
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch alumni list' });
+  }
+};
+
+const getAlumniFacets = async (req, res) => {
+  try {
+    const [batchValues, courseValues, branchValues, fieldValues] = await Promise.all([
+      Alumni.distinct('graduationYear', {}),
+      Alumni.distinct('course', {}),
+      Alumni.distinct('branch', {}),
+      Alumni.distinct('fieldOfStudy', {})
+    ]);
+
+    const mergedBranches = Array.from(new Set([...(branchValues || []), ...(fieldValues || [])]));
+
+    res.status(200).json({
+      batches: batchValues.filter(Boolean).sort((a, b) => a - b),
+      courses: courseValues.filter(Boolean).sort(),
+      branches: mergedBranches.filter(Boolean).sort()
+    });
+  } catch (error) {
+    console.error('Error fetching admin alumni facets:', error);
+    res.status(500).json({ error: 'Failed to fetch alumni facets' });
   }
 };
 
@@ -289,4 +390,4 @@ const deleteAlumni = async (req, res) => {
   }
 };
 
-module.exports = { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob, addAlumniVisitDate, deleteAlumni };
+module.exports = { getAllAlumni, getAlumniFacets, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob, addAlumniVisitDate, deleteAlumni };

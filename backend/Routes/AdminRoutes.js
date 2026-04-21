@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAllAlumni, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob, addAlumniVisitDate, deleteAlumni } = require('../Controllers/AdminController');
+const { getAllAlumni, getAlumniFacets, getMetrics, getStudents, getActivity, changePassword, resetAlumniPasswordToDob, addAlumniVisitDate, deleteAlumni } = require('../Controllers/AdminController');
 const { importAlumniFromExcel, getImportHistory, getImportHistoryById } = require('../Controllers/AdminImportController');
 const protectRoute = require('../Middlewares/ProtectRoute');
 const requireAdmin = require('../Middlewares/RequireAdmin');
@@ -38,6 +38,7 @@ router.get('/students', protectRoute, requireAdmin, getStudents);
 
 // Alumni list
 router.get('/alumni', protectRoute, requireAdmin, getAllAlumni);
+router.get('/alumni/facets', protectRoute, requireAdmin, getAlumniFacets);
 
 router.put('/alumni/:id/reset-password-dob', protectRoute, requireAdmin, resetAlumniPasswordToDob);
 router.put('/alumni/:id/visit-date', protectRoute, requireAdmin, addAlumniVisitDate);

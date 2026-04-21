@@ -26,6 +26,11 @@ function normalizeText(value) {
   return String(value).trim();
 }
 
+function toPositiveInt(value, fallback) {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isNaN(parsed) || parsed <= 0 ? fallback : parsed;
+}
+
 function attachIdentityFields(record) {
   const rollNumber = record?.rollNumber || record?.registrationNumber || '';
   const registrationNumber = record?.usn || record?.registrationNumber || '';
@@ -62,10 +67,34 @@ function buildDirectoryFilter(query = {}) {
 
 const getAllAlumni = async (req, res) => {
   try {
+    const page = toPositiveInt(req.query.page, 1);
+    const limit = Math.min(toPositiveInt(req.query.limit, 80), 200);
+    const skip = (page - 1) * limit;
     const filter = buildDirectoryFilter(req.query);
     // Network directory should expose only required profile fields + social links.
-    const alumni = await Alumni.find(filter).select(NETWORK_ALUMNI_FIELDS).lean();
-    res.status(200).json({ alumni: alumni.map(attachIdentityFields) });
+    const [alumni, total] = await Promise.all([
+      Alumni.find(filter)
+        .sort({ graduationYear: -1, createdAt: -1, _id: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select(NETWORK_ALUMNI_FIELDS)
+        .lean(),
+      Alumni.countDocuments(filter)
+    ]);
+
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    res.status(200).json({
+      alumni: alumni.map(attachIdentityFields),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasPrevPage: page > 1,
+        hasNextPage: page < totalPages
+      }
+    });
   } catch (error) {
     console.error('Error fetching alumni:', error);
     res.status(500).json({ error: 'Failed to retrieve alumni' });

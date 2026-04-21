@@ -23,7 +23,10 @@ function AdvancedMetrics({ stats, theme = 'dark' }) {
       const base = API_BASE_URL;
       const token = localStorage.getItem('token');
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      const response = await axios.get(`${base}/admin/alumni`, { headers });
+      const response = await axios.get(`${base}/admin/alumni`, {
+        headers,
+        params: { page: 1, limit: 30, sortBy: 'name', sortOrder: 'asc' }
+      });
       
       // Get top alumni (most verified, or recently joined)
       const alumni = Array.isArray(response.data) ? response.data : response.data.alumni || [];

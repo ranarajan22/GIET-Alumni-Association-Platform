@@ -16,6 +16,14 @@ const Network = ({ onChatClick, userRole = null }) => {
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedBranch, setSelectedBranch] = useState('');
   const [facets, setFacets] = useState({ batches: [], courses: [], branches: [] });
+  const [networkPagination, setNetworkPagination] = useState({
+    page: 1,
+    limit: 80,
+    total: 0,
+    totalPages: 1,
+    hasNextPage: false
+  });
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Determine role from prop or localStorage
   const role = userRole || localStorage.getItem("userRole");
@@ -73,7 +81,7 @@ const Network = ({ onChatClick, userRole = null }) => {
         } else {
           // If student user, fetch all alumni
           const [alumniResponse, alumniFacetsResponse] = await Promise.all([
-            axios.get(`${API_BASE_URL}/alumni-list`, { params: commonParams }),
+            axios.get(`${API_BASE_URL}/alumni-list`, { params: { ...commonParams, page: 1, limit: networkPagination.limit } }),
             axios.get(`${API_BASE_URL}/alumni-list/facets`)
           ]);
           const alumniData = (alumniResponse.data.alumni || []).map(alumni => ({
@@ -83,6 +91,10 @@ const Network = ({ onChatClick, userRole = null }) => {
             role: 'alumni'
           }));
           setAlumni(alumniData);
+          setNetworkPagination((prev) => ({
+            ...prev,
+            ...(alumniResponse.data?.pagination || { page: 1, total: alumniData.length, totalPages: 1, hasNextPage: false })
+          }));
           setFacets(alumniFacetsResponse.data || { batches: [], courses: [], branches: [] });
         }
 
@@ -104,11 +116,47 @@ const Network = ({ onChatClick, userRole = null }) => {
     (person.email && person.email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
+  const handleLoadMoreAlumni = async () => {
+    if (isAlumni || !networkPagination.hasNextPage || loadingMore) {
+      return;
+    }
+
+    try {
+      setLoadingMore(true);
+      const nextPage = networkPagination.page + 1;
+      const params = {
+        search: searchQuery || undefined,
+        batch: selectedBatch || undefined,
+        course: selectedCourse || undefined,
+        branch: selectedBranch || undefined,
+        page: nextPage,
+        limit: networkPagination.limit
+      };
+      const response = await axios.get(`${API_BASE_URL}/alumni-list`, { params });
+      const nextRows = (response.data?.alumni || []).map((person) => ({
+        ...person,
+        email: person.collegeEmail,
+        branch: person.branch || person.fieldOfStudy,
+        role: 'alumni'
+      }));
+
+      setAlumni((prev) => [...prev, ...nextRows]);
+      setNetworkPagination((prev) => ({
+        ...prev,
+        ...(response.data?.pagination || prev)
+      }));
+    } catch (loadMoreError) {
+      console.error('Error loading more alumni:', loadMoreError);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   if (loading) return <div className="p-6 text-center text-gray-900 dark:text-white">Loading network...</div>;
   if (error) return <div className="p-6 text-center text-red-600 dark:text-red-400">{error}</div>;
 
   const sectionTitle = isAlumni ? "Student Network" : "Alumni Network";
-  const sectionCount = filteredData.length;
+  const sectionCount = isAlumni ? filteredData.length : (networkPagination.total || filteredData.length);
 
   return (
     <div className="p-3 sm:p-4 md:p-6">
@@ -216,6 +264,18 @@ const Network = ({ onChatClick, userRole = null }) => {
           </div>
         )}
       </div>
+
+      {!isAlumni && !loading && networkPagination.hasNextPage && (
+        <div className="mt-6 flex justify-center">
+          <button
+            onClick={handleLoadMoreAlumni}
+            disabled={loadingMore}
+            className="px-5 py-2 rounded-lg bg-cyan-600 text-white text-sm font-semibold hover:bg-cyan-500 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loadingMore ? 'Loading...' : 'Load More Alumni'}
+          </button>
+        </div>
+      )}
 
       {/* Full Profile Modal */}
       {selectedProfile && (
