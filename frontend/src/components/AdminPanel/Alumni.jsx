@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../../config';
 import { Shield, AlertTriangle, Search, CalendarPlus, Eye, X, Trash2, EyeOff, ArrowUpDown, Rows3, Columns3, RefreshCw } from 'lucide-react';
-import { mergeCourseOptions, mergeBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
+import { COURSE_OPTIONS, getBranchOptions, getCourseLabel, getBranchLabel } from '../../constants/courseCatalog';
 
 const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [alumniList, setAlumni] = useState([]);
@@ -47,10 +47,13 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     return parsed.toLocaleDateString();
   };
 
-  const courseOptions = useMemo(() => mergeCourseOptions(facets.courses || []), [facets.courses]);
+  const courseOptions = useMemo(
+    () => COURSE_OPTIONS.map((course) => ({ value: course.value, label: course.label })),
+    []
+  );
   const branchOptions = useMemo(
-    () => mergeBranchOptions(courseFilter, facets.branches || []),
-    [courseFilter, facets.branches]
+    () => getBranchOptions(courseFilter).map((branch) => ({ value: branch.value, label: branch.label })),
+    [courseFilter]
   );
 
   // Hardcoded field name mapping for display labels
