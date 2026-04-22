@@ -268,14 +268,8 @@ export function mergeCourseOptions(facetValues = []) {
     label: course.label
   }));
 
-  const facetOptions = (facetValues || [])
-    .filter(Boolean)
-    .map((value) => ({
-      value,
-      label: getCourseLabel(value)
-    }));
-
-  return uniqueOptions([...catalogOptions, ...facetOptions]).sort((left, right) => left.label.localeCompare(right.label));
+  // Keep course filters minimal and stable by using curated catalog courses only.
+  return uniqueOptions(catalogOptions).sort((left, right) => left.label.localeCompare(right.label));
 }
 
 export function mergeBranchOptions(courseValue, facetValues = []) {

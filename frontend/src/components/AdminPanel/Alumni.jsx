@@ -9,7 +9,6 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
-  const [batchFilter, setBatchFilter] = useState('');
   const [courseFilter, setCourseFilter] = useState('');
   const [branchFilter, setBranchFilter] = useState('');
   const [resetInfo, setResetInfo] = useState(null);
@@ -172,7 +171,6 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
         page,
         limit: pageSize,
         search: debouncedSearch || undefined,
-        batch: batchFilter || undefined,
         course: courseFilter || undefined,
         branch: branchFilter || undefined,
         sortBy,
@@ -215,7 +213,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy, pageSize]);
+  }, [debouncedSearch, courseFilter, branchFilter, sortBy, pageSize]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -223,7 +221,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
 
   useEffect(() => {
     fetchAlumni({ page: currentPage });
-  }, [currentPage, debouncedSearch, batchFilter, courseFilter, branchFilter, sortBy, pageSize]);
+  }, [currentPage, debouncedSearch, courseFilter, branchFilter, sortBy, pageSize]);
 
   useEffect(() => {
     if (branchFilter && !branchOptions.some((branch) => branch.value === branchFilter)) {
@@ -231,10 +229,6 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
     }
   }, [branchOptions, branchFilter]);
 
-  const descendingBatches = useMemo(
-    () => [...(facets.batches || [])].filter(Boolean).sort((a, b) => b - a),
-    [facets.batches]
-  );
   const visibleStart = pagination.total === 0 ? 0 : ((pagination.page - 1) * pagination.limit) + 1;
   const visibleEnd = pagination.total === 0 ? 0 : Math.min(pagination.total, visibleStart + alumniList.length - 1);
 
@@ -328,7 +322,7 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -338,12 +332,6 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
             className={isDark ? 'w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}
           />
         </div>
-        <select value={batchFilter} onChange={(e) => setBatchFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
-          <option value="">All Batches</option>
-          {(facets.batches || []).map((batch) => (
-            <option key={batch} value={batch}>{batch}</option>
-          ))}
-        </select>
         <select value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)} className={isDark ? 'px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100' : 'px-3 py-2 bg-white border border-slate-300 rounded-lg text-slate-900'}>
           <option value="">All Courses</option>
           {courseOptions.map((course) => (
@@ -416,24 +404,6 @@ const Alumni = ({ showAll = true, theme = 'dark' }) => {
           {visitInfo}
         </div>
       )}
-
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setBatchFilter('')}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${!batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border border-slate-300 text-slate-700'}`}
-        >
-          All Years
-        </button>
-        {descendingBatches.map((year) => (
-          <button
-            key={year}
-            onClick={() => setBatchFilter(String(year))}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${String(year) === batchFilter ? 'bg-cyan-600 border-cyan-500 text-white' : isDark ? 'bg-slate-800 border-slate-700 text-slate-300' : 'bg-white border border-slate-300 text-slate-700'}`}
-          >
-            {year}
-          </button>
-        ))}
-      </div>
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
