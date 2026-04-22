@@ -11,9 +11,8 @@ export const SocketProvider = ({ children, userId }) => {
   const [socket, setSocket] = useState(null);
 
   useEffect(() => {
-    // Warn if no userId is provided
+    // Skip socket initialization until a user logs in and a userId exists.
     if (!userId) {
-      console.warn('UserId is not available! Socket connection will not be established.');
       return;
     }
 

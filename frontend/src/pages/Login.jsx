@@ -7,6 +7,10 @@ import { ToastContainer } from 'react-toastify';
 import { Eye, EyeOff } from 'lucide-react';
 import api from '../utils/api';
 
+const isTimeoutOrNetworkIssue = (error) =>
+    error?.code === 'ECONNABORTED' ||
+    /timeout|network error|failed to fetch|ERR_CONNECTION_TIMED_OUT/i.test(error?.message || '');
+
 function Login() {
     const [loginInfo, setLoginInfo] = useState({
         collegeEmail: '',
@@ -50,8 +54,22 @@ function Login() {
             const payload = userType === 'alumni'
                 ? { identifier: loginInfo.collegeEmail, password: loginInfo.password }
                 : loginInfo;
+            let data;
 
-            const { data } = await api.post(url, payload);
+            try {
+                const response = await api.post(url, payload, { timeout: 20000 });
+                data = response.data;
+            } catch (firstError) {
+                if (!isTimeoutOrNetworkIssue(firstError)) {
+                    throw firstError;
+                }
+
+                // Render cold starts can take a while; ping once and retry login a single time.
+                await api.get('/maintenance/check', { timeout: 25000 });
+                const retryResponse = await api.post(url, payload, { timeout: 25000 });
+                data = retryResponse.data;
+            }
+
             const { success, message, token, fullname, profilePhoto, _id, role, passwordResetRequired } = data;
 
             if (success) {
@@ -96,6 +114,10 @@ function Login() {
                 handleError(message || 'Login failed');
             }
         } catch (error) {
+            if (isTimeoutOrNetworkIssue(error)) {
+                handleError('Server is taking too long to respond. Please wait 20-30 seconds and try again.');
+                return;
+            }
             const detail = error.response?.data?.details?.[0];
             const message = detail || error.response?.data?.message || error.message || 'Login failed';
             handleError(message);

@@ -43,8 +43,17 @@ const COURSE_ALIASES = {
   'M.TECH': 'MTECH',
   MBA: 'MBA',
   MCA: 'MCA',
-  DIPLOMA: 'DIPLOMA'
+  DIPLOMA: 'DIPLOMA',
+  'B.SC AGRI': 'B.SC AGRI',
+  'BSC AGRI': 'B.SC AGRI',
+  'B SC AGRI': 'B.SC AGRI',
+  'BSC AGRICULTURE': 'B.SC AGRI',
+  'B.SC AGRICULTURE': 'B.SC AGRI',
+  'BSC HONS AGRICULTURE': 'B.SC AGRI',
+  'B.SC HONS AGRICULTURE': 'B.SC AGRI'
 };
+
+const COURSE_EQUALS_BRANCH = new Set(['BCA', 'MBA', 'B.SC AGRI']);
 
 const HEADER_PATTERNS = {
   rollNo: [
@@ -155,6 +164,13 @@ function normalizeUrl(value) {
 function normalizeBranch(rawBranch) {
   const normalized = normalizeText(rawBranch).toUpperCase();
   return BRANCH_ALIASES[normalized] || normalized;
+}
+
+function enforceCourseBranchRules(course, branch) {
+  if (COURSE_EQUALS_BRANCH.has(course)) {
+    return course;
+  }
+  return branch;
 }
 
 function inferHeaderRow(rows) {
@@ -416,8 +432,8 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
       const regdNo = normalizeIdentifier(getCell(row, columns.regdNo)) || rollNo;
       const fullName = normalizeText(getCell(row, columns.fullName));
       const branchRaw = getCell(row, columns.branch) || options.defaultBranch || '';
-      const branch = normalizeBranch(branchRaw || '');
       const course = normalizeCourse(getCell(row, columns.course) || options.defaultCourse || options.course || defaultCourse || sheet.name);
+      const branch = enforceCourseBranchRules(course, normalizeBranch(branchRaw || ''));
       const dob = parseExcelDate(row[columns.dob], date1904);
       const tempPassword = toTempPassword(dob) || fallbackTempPassword(rollNo);
       const collegeEmail = buildEmail(rollNo, getCell(row, columns.collegeEmail));

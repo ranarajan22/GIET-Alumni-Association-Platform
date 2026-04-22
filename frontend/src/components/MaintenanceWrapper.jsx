@@ -31,7 +31,7 @@ function MaintenanceWrapper({ children }) {
       setIsAdmin(userRole === 'admin');
 
       // Public endpoint that doesn't require authentication
-      const response = await axios.get(`${base}/maintenance/check`, { timeout: 2500 });
+      const response = await axios.get(`${base}/maintenance/check`, { timeout: 10000 });
       
       if (response.data && response.data.isActive) {
         // Only block non-admin users from non-admin routes
@@ -42,7 +42,12 @@ function MaintenanceWrapper({ children }) {
         setIsMaintenanceActive(false);
       }
     } catch (error) {
-      console.error('Error checking maintenance status:', error);
+      const isTimeout = error?.code === 'ECONNABORTED' || /timeout/i.test(error?.message || '');
+      if (isTimeout) {
+        console.warn('Maintenance check timed out; continuing without maintenance lock.');
+      } else {
+        console.error('Error checking maintenance status:', error);
+      }
       // If there's an error, assume maintenance is not active
       setIsMaintenanceActive(false);
     } finally {
