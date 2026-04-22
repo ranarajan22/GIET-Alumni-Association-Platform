@@ -284,12 +284,6 @@ export function mergeBranchOptions(courseValue, facetValues = []) {
     label: branch.label
   }));
 
-  const facetOptions = (facetValues || [])
-    .filter((value) => value && !isLikelyRollNumber(value))
-    .map((value) => ({
-      value,
-      label: getBranchLabel(courseValue, value)
-    }));
-
-  return uniqueOptions([...catalogOptions, ...facetOptions]).sort((left, right) => left.label.localeCompare(right.label));
+  // Keep branch filters clean and predictable by using curated catalog branches only.
+  return uniqueOptions(catalogOptions).sort((left, right) => left.label.localeCompare(right.label));
 }
