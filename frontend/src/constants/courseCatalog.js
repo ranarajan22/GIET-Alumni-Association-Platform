@@ -34,6 +34,13 @@ export const COURSE_GROUPS = [
         ]
       },
       {
+        value: 'B.SC AGRI',
+        label: 'B.Sc Agri',
+        branches: [
+          { value: 'B.SC AGRI', label: 'B.Sc Agri' }
+        ]
+      },
+      {
         value: 'BSC HONS AGRICULTURE',
         label: 'B.Sc (Hons) Agriculture',
         branches: [
@@ -51,6 +58,7 @@ export const COURSE_GROUPS = [
         value: 'BCA',
         label: 'Bachelor of Computer Application',
         branches: [
+          { value: 'BCA', label: 'BCA' },
           { value: 'COMPUTER APPLICATION', label: 'Computer Application' }
         ]
       },
@@ -116,6 +124,7 @@ export const COURSE_GROUPS = [
         value: 'MBA',
         label: 'MBA',
         branches: [
+          { value: 'MBA', label: 'MBA' },
           { value: 'GENERAL', label: 'General Management' },
           { value: 'OPERATION MANAGEMENT', label: 'Operations Management' },
           { value: 'DATA ANALYTICS', label: 'Data Analytics' },

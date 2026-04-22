@@ -45,6 +45,7 @@ const COURSE_ALIASES = {
   MCA: 'MCA',
   DIPLOMA: 'DIPLOMA',
   'B.SC AGRI': 'B.SC AGRI',
+  'BSC.AGRI': 'B.SC AGRI',
   'BSC AGRI': 'B.SC AGRI',
   'B SC AGRI': 'B.SC AGRI',
   'BSC AGRICULTURE': 'B.SC AGRI',
@@ -137,6 +138,12 @@ function normalizeText(value) {
 
 function normalizeIdentifier(value) {
   return normalizeText(value).toUpperCase().replace(/\s+/g, '').replace(/[^A-Z0-9]/g, '');
+}
+
+function isValidRollNumber(value) {
+  const normalized = normalizeIdentifier(value);
+  if (!normalized) return false;
+  return /^(?=.*[A-Z])(?=.*\d)[A-Z0-9]{6,20}$/.test(normalized);
 }
 
 function normalizeCourse(rawCourse) {
@@ -479,6 +486,15 @@ async function parseWorkbook(fileInput, fileName, options = {}) {
           row: rowNumber,
           rollNo: rollNo || '',
           reason: `[${sheet.name}] Missing required values (University Registration Number / Name of the Alumni)`
+        });
+        continue;
+      }
+
+      if (!isValidRollNumber(rollNo)) {
+        errors.push({
+          row: rowNumber,
+          rollNo: rollNo || '',
+          reason: `[${sheet.name}] Invalid roll number format. Expected alphanumeric code like 20BAG3344.`
         });
         continue;
       }

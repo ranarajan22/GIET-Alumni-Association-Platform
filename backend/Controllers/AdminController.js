@@ -40,9 +40,22 @@ function buildAdminAlumniFilter(query = {}) {
     }
   }
 
-  if (query.course) filter.course = query.course;
-  if (query.branch) {
-    filter.$or = [{ branch: query.branch }, { fieldOfStudy: query.branch }];
+  const normalizedCourse = normalizeCourseFacet(query.course);
+  const courseValues = normalizedCourse === 'B.SC AGRI'
+    ? ['B.SC AGRI', 'BSC AGRI', 'BSC.AGRI', 'BSC HONS AGRICULTURE', 'B.SC HONS AGRICULTURE', 'BSC AGRICULTURE', 'B.SC AGRICULTURE']
+    : normalizedCourse ? [normalizedCourse] : [];
+  if (courseValues.length === 1) {
+    filter.course = courseValues[0];
+  } else if (courseValues.length > 1) {
+    filter.course = { $in: courseValues };
+  }
+
+  const normalizedBranch = normalizeFacetText(query.branch);
+  const branchValues = normalizedBranch === 'B.SC AGRI'
+    ? ['B.SC AGRI', 'BSC AGRI', 'AGRICULTURE', 'BSC HONS AGRICULTURE', 'B.SC HONS AGRICULTURE']
+    : normalizedBranch ? [normalizedBranch] : [];
+  if (branchValues.length) {
+    filter.$or = [{ branch: { $in: branchValues } }, { fieldOfStudy: { $in: branchValues } }];
   }
 
   if (query.search) {
@@ -86,7 +99,38 @@ function getAdminAlumniSort(query = {}) {
 function isLikelyRollNumber(value) {
   const normalized = String(value || '').trim().replace(/\s+/g, '').toUpperCase();
   if (!normalized) return false;
-  return /^\d{2,4}[A-Z]{2,5}\d{2,5}$/.test(normalized);
+  return /^\d{2,4}[A-Z]{2,6}\d{2,6}$/.test(normalized) || /^[A-Z]{2,6}\d{2,6}[A-Z0-9]{0,6}$/.test(normalized);
+}
+
+function normalizeFacetText(value) {
+  return String(value || '').trim().replace(/\s+/g, ' ').toUpperCase();
+}
+
+function normalizeCourseFacet(value) {
+  const normalized = normalizeFacetText(value)
+    .replace(/\./g, '')
+    .replace(/\s+/g, ' ');
+
+  if (!normalized) return '';
+  if (['BSC AGRI', 'B SC AGRI', 'BSC AGRICULTURE', 'B SC AGRICULTURE', 'BSC HONS AGRICULTURE', 'B SC HONS AGRICULTURE'].includes(normalized)) {
+    return 'B.SC AGRI';
+  }
+
+  return normalizeFacetText(value);
+}
+
+function dedupeNormalized(values = [], normalizer = normalizeFacetText) {
+  const seen = new Set();
+  const result = [];
+
+  values.forEach((value) => {
+    const normalized = normalizer(value);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    result.push(normalized);
+  });
+
+  return result;
 }
 
 // Controller to get all alumni (for admin)
@@ -131,14 +175,20 @@ const getAlumniFacets = async (req, res) => {
       Alumni.distinct('fieldOfStudy', {})
     ]);
 
-    const mergedBranches = Array.from(
-      new Set([...(branchValues || []), ...(fieldValues || [])].filter((value) => value && !isLikelyRollNumber(value)))
+    const mergedBranches = dedupeNormalized(
+      [...(branchValues || []), ...(fieldValues || [])]
+        .filter((value) => {
+          const normalized = normalizeFacetText(value);
+          return normalized && !isLikelyRollNumber(normalized) && !/\d/.test(normalized);
+        })
     );
+
+    const courses = dedupeNormalized(courseValues || [], normalizeCourseFacet);
 
     res.status(200).json({
       batches: batchValues.filter(Boolean).sort((a, b) => a - b),
-      courses: courseValues.filter(Boolean).sort(),
-      branches: mergedBranches.filter(Boolean).sort()
+      courses: courses.sort(),
+      branches: mergedBranches.sort()
     });
   } catch (error) {
     console.error('Error fetching admin alumni facets:', error);
