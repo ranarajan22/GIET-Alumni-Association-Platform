@@ -41,6 +41,7 @@ function Students({ theme = 'dark' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCourse, setFilterCourse] = useState('');
   const [filterBranch, setFilterBranch] = useState('');
+  const [filterGradYear, setFilterGradYear] = useState('');
   const [sortBy, setSortBy] = useState('name');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -109,7 +110,8 @@ function Students({ theme = 'dark' }) {
       const matchesCourse = !filterCourse || s.course === filterCourse;
       const studentBranch = getStudentBranch(s);
       const matchesBranch = !filterBranch || studentBranch === filterBranch;
-      return matchesSearch && matchesCourse && matchesBranch;
+      const matchesYear = !filterGradYear || String(s.graduationYear) === filterGradYear;
+      return matchesSearch && matchesCourse && matchesBranch && matchesYear;
     });
 
     // Sort
@@ -127,16 +129,19 @@ function Students({ theme = 'dark' }) {
     });
 
     return result;
-  }, [students, normalizedSearchQuery, filterCourse, filterBranch, sortBy]);
+  }, [students, normalizedSearchQuery, filterCourse, filterBranch, filterGradYear, sortBy]);
 
   const filterCounters = useMemo(() => {
     const courseCounts = {};
     const branchCounts = {};
+    const yearCounts = {};
     let allCoursesCount = 0;
     let allBranchesCount = 0;
+    let allYearsCount = 0;
 
     students.forEach((student) => {
       const studentBranch = getStudentBranch(student);
+      const yearKey = student.graduationYear ? String(student.graduationYear) : '';
       const matchesSearch =
         !normalizedSearchQuery ||
         student.fullName?.toLowerCase().includes(normalizedSearchQuery) ||
@@ -144,18 +149,26 @@ function Students({ theme = 'dark' }) {
         student.usn?.toLowerCase().includes(normalizedSearchQuery);
       const matchesCourse = !filterCourse || student.course === filterCourse;
       const matchesBranch = !filterBranch || studentBranch === filterBranch;
+      const matchesYear = !filterGradYear || yearKey === filterGradYear;
 
-      if (matchesSearch && matchesBranch) {
+      if (matchesSearch && matchesBranch && matchesYear) {
         allCoursesCount += 1;
         if (student.course) {
           courseCounts[student.course] = (courseCounts[student.course] || 0) + 1;
         }
       }
 
-      if (matchesSearch && matchesCourse) {
+      if (matchesSearch && matchesCourse && matchesYear) {
         allBranchesCount += 1;
         if (studentBranch) {
           branchCounts[studentBranch] = (branchCounts[studentBranch] || 0) + 1;
+        }
+      }
+
+      if (matchesSearch && matchesCourse && matchesBranch) {
+        allYearsCount += 1;
+        if (yearKey) {
+          yearCounts[yearKey] = (yearCounts[yearKey] || 0) + 1;
         }
       }
     });
@@ -163,10 +176,15 @@ function Students({ theme = 'dark' }) {
     return {
       allCoursesCount,
       allBranchesCount,
+      allYearsCount,
       courseCounts,
-      branchCounts
+      branchCounts,
+      yearCounts
     };
-  }, [students, normalizedSearchQuery, filterCourse, filterBranch]);
+  }, [students, normalizedSearchQuery, filterCourse, filterBranch, filterGradYear]);
+
+  // Get unique values for filters
+  const gradYears = [...new Set(students.map((s) => s.graduationYear))].filter(Boolean).sort().reverse();
 
   // Pagination
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
@@ -231,7 +249,7 @@ function Students({ theme = 'dark' }) {
       </div>
 
       {/* Filters & Search */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500" />
           <input
@@ -258,6 +276,22 @@ function Students({ theme = 'dark' }) {
           {courseOptions.map((course) => (
             <option key={course.value} value={course.value}>
               {course.label} ({filterCounters.courseCounts[course.value] || 0})
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={filterGradYear}
+          onChange={(e) => {
+            setFilterGradYear(e.target.value);
+            setCurrentPage(1);
+          }}
+          className={isDark ? 'px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 focus:outline-none focus:border-cyan-500' : 'px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:border-cyan-500'}
+        >
+          <option value="">All Years ({filterCounters.allYearsCount})</option>
+          {gradYears.map((y) => (
+            <option key={y} value={y}>
+              Class of {y} ({filterCounters.yearCounts[String(y)] || 0})
             </option>
           ))}
         </select>
